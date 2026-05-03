@@ -1,4 +1,4 @@
-﻿import React, { Suspense, lazy } from 'react';
+﻿import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material';
 import { Provider } from 'react-redux';
@@ -14,6 +14,7 @@ import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
 
 // Dashboards
 import AthleteDashboard   from './pages/athlete/AthleteDashboard';
+import AthleteProfileSetup from './pages/athlete/AthleteProfileSetup';
 import CoachDashboard     from './pages/coach/CoachDashboard';
 import AdminDashboard     from './pages/admin/AdminDashboard';
 import AdminManagement    from './pages/admin/AdminManagement';
@@ -33,10 +34,7 @@ export default function App() {
           position="top-right"
           toastOptions={{
             duration: 4000,
-            style: {
-              borderRadius: '10px',
-              fontFamily: '"Inter", "Roboto", sans-serif',
-            },
+            style: { borderRadius: '10px', fontFamily: '"Inter", "Roboto", sans-serif' },
           }}
         />
         <BrowserRouter>
@@ -50,9 +48,14 @@ export default function App() {
             <Route path="/auth/forgot-password" element={<ForgotPasswordPage />} />
 
             {/* Athlete */}
-            <Route path="/athlete/*" element={
+            <Route path="/athlete/dashboard" element={
               <ProtectedRoute allowedRoles={['athlete']}>
                 <AthleteDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/athlete/profile-setup" element={
+              <ProtectedRoute allowedRoles={['athlete']}>
+                <AthleteProfileSetup />
               </ProtectedRoute>
             } />
 
@@ -63,14 +66,12 @@ export default function App() {
               </ProtectedRoute>
             } />
 
-            {/* Admin dashboard */}
+            {/* Admin */}
             <Route path="/admin/dashboard" element={
               <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_analytics']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-
-            {/* Admin management — super_admin only */}
             <Route path="/admin/admins" element={
               <ProtectedRoute allowedRoles={['admin']} adminLevels={['super_admin']}>
                 <AdminManagement />
@@ -78,7 +79,8 @@ export default function App() {
             } />
 
             <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="*"     element={<Navigate to="/auth/login" replace />} />
+            <Route path="/athlete" element={<Navigate to="/athlete/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/auth/login" replace />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

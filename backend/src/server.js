@@ -20,7 +20,6 @@ process.on('unhandledRejection', (err) => {
   logger.error('UNHANDLED REJECTION:', err.message);
   process.exit(1);
 });
-
 process.on('uncaughtException', (err) => {
   logger.error('UNCAUGHT EXCEPTION:', err.message);
   process.exit(1);
