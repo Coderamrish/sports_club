@@ -5,7 +5,6 @@ const path = require('path');
 
 // ─── GET /api/coaches/profile ─────────────────────────────────────────────
 exports.getProfile = async (req, res, next) => {
-   console.log('COACH ROLE:', req.user.role); 
   try {
     const profile = await CoachProfile.findOne({ user: req.user._id })
       .populate('user', 'fullName email mobile profilePhoto isEmailVerified');
@@ -58,6 +57,80 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
+// ─── PATCH /api/coaches/profile/step/:step ────────────────────────────────
+exports.updateProfileStep = async (req, res, next) => {
+  try {
+    const stepNum = parseInt(req.params.step, 10);
+    if (isNaN(stepNum) || stepNum < 1 || stepNum > 5) {
+      return next(new AppError('Invalid step number. Must be 1–5.', 400));
+    }
+
+    const profile = await CoachProfile.findOne({ user: req.user._id });
+    if (!profile) return next(new AppError('Profile not found.', 404));
+
+    if (stepNum > profile.formStep + 1) {
+      return next(new AppError(`Please complete step ${profile.formStep} before skipping to step ${stepNum}.`, 400));
+    }
+
+    const body = req.body;
+    switch (stepNum) {
+      case 1:
+        if (body.dateOfBirth !== undefined) profile.dateOfBirth = body.dateOfBirth;
+        if (body.gender !== undefined) profile.gender = body.gender;
+        if (body.specialization !== undefined) profile.specialization = Array.isArray(body.specialization) ? body.specialization : [body.specialization];
+        if (body.experienceYears !== undefined) profile.experienceYears = body.experienceYears;
+        if (body.bio !== undefined) profile.bio = body.bio;
+        break;
+      case 2:
+        if (body.street || body.city || body.state || body.pinCode) {
+          profile.address = {
+            street: body.street || profile.address?.street,
+            city: body.city || profile.address?.city,
+            state: body.state || profile.address?.state,
+            pinCode: body.pinCode || profile.address?.pinCode,
+            country: body.country || 'India',
+          };
+        }
+        break;
+      case 3:
+        if (body.clubName !== undefined) profile.clubName = body.clubName;
+        if (body.stateAssociation !== undefined) profile.stateAssociation = body.stateAssociation;
+        break;
+      case 4:
+        // Document upload handled separately
+        break;
+      case 5:
+        // Declaration / Done
+        break;
+    }
+
+    if (stepNum >= profile.formStep && stepNum < 5) {
+      profile.formStep = stepNum + 1;
+    }
+
+    if (profile.formStep >= 4) {
+      profile.profileStatus = 'Pending Review';
+    } else {
+      profile.profileStatus = 'Incomplete';
+    }
+
+    await profile.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Step ${stepNum} saved successfully.`,
+      data: {
+        profile,
+        nextStep: Math.min(stepNum + 1, 5),
+        formStep: profile.formStep,
+        profileStatus: profile.profileStatus,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // ─── POST /api/coaches/profile/documents/:docType ────────────────────────
 exports.uploadDocument = async (req, res, next) => {
   try {
@@ -85,6 +158,28 @@ exports.uploadDocument = async (req, res, next) => {
       message: 'Document uploaded.',
       data: { url: fileUrl, key: fileKey, docType },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─── DELETE /api/coaches/profile/documents/:docType ──────────────────────
+exports.deleteDocument = async (req, res, next) => {
+  try {
+    const { docType } = req.params;
+    const profile = await CoachProfile.findOne({ user: req.user._id });
+    if (!profile) return next(new AppError('Profile not found.', 404));
+
+    const ALLOWED = ['profilePhoto', 'idProof', 'certificationDoc'];
+    if (ALLOWED.includes(docType) && profile.documents[docType]?.key) {
+      deleteFile(path.join(__dirname, '../../../uploads/coaches/documents', profile.documents[docType].key));
+      profile.documents[docType] = undefined;
+      await profile.save();
+    } else {
+      return next(new AppError(`Cannot delete document of type: ${docType}`, 400));
+    }
+
+    res.status(200).json({ success: true, message: 'Document deleted.' });
   } catch (err) {
     next(err);
   }

@@ -16,10 +16,10 @@ import toast from 'react-hot-toast';
 import { useDebounce } from '../../hooks/useDebounce';
 
 const STATUS_CONFIG = {
-  'Pending':   { color: 'warning', label: 'Pending' },
-  'Active':    { color: 'success', label: 'Active' },
-  'Suspended': { color: 'error',   label: 'Suspended' },
-  'Inactive':  { color: 'default', label: 'Inactive' },
+  'Incomplete':     { color: 'default', label: 'Incomplete' },
+  'Pending Review': { color: 'warning', label: 'Pending Review' },
+  'Approved':       { color: 'success', label: 'Approved' },
+  'Rejected':       { color: 'error',   label: 'Rejected' },
 };
 
 const SPECIALIZATION_OPTIONS = [
@@ -177,7 +177,7 @@ export default function CoachManagement() {
               </TableRow>
             ) : coaches.map(profile => {
               const user = profile.user;
-              const cfg  = STATUS_CONFIG[profile.status] || STATUS_CONFIG['Inactive'];
+              const cfg  = STATUS_CONFIG[profile.profileStatus] || STATUS_CONFIG['Incomplete'];
 
               return (
                 <TableRow
@@ -228,9 +228,9 @@ export default function CoachManagement() {
 
                   {/* Certification */}
                   <TableCell>
-                    {profile.certificationLevel ? (
+                    {profile.certifications?.length > 0 ? (
                       <Chip
-                        label={profile.certificationLevel}
+                        label={`${profile.certifications.length} cert.`}
                         size="small"
                         color="primary"
                         variant="outlined"
@@ -244,7 +244,7 @@ export default function CoachManagement() {
                   {/* Athletes coached */}
                   <TableCell>
                     <Typography variant="body2" fontWeight={600}>
-                      {profile.athleteCount ?? '—'}
+                      {profile.assignedAthletes?.length ?? '—'}
                     </Typography>
                   </TableCell>
 
@@ -285,13 +285,13 @@ export default function CoachManagement() {
                           <Visibility fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      {profile.status === 'Pending' && (
+                      {profile.profileStatus === 'Pending Review' && (
                         <>
                           <Tooltip title="Activate">
                             <IconButton
                               size="small"
                               color="success"
-                              onClick={() => handleQuickStatus(user._id, 'Active')}
+                              onClick={() => handleQuickStatus(user._id, 'Approved')}
                             >
                               <CheckCircle fontSize="small" />
                             </IconButton>
@@ -300,7 +300,7 @@ export default function CoachManagement() {
                             <IconButton
                               size="small"
                               color="error"
-                              onClick={() => handleQuickStatus(user._id, 'Suspended')}
+                              onClick={() => handleQuickStatus(user._id, 'Rejected')}
                             >
                               <Cancel fontSize="small" />
                             </IconButton>

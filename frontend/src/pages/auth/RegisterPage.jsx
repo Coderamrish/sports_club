@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Card, CardContent, TextField, Button, Typography,
   InputAdornment, IconButton, Alert, CircularProgress,
@@ -9,7 +9,7 @@ import {
   Visibility, VisibilityOff, Email, Lock, Person, Phone,
   DirectionsRun, SportsKabaddi, CheckCircle, Cancel, HourglassEmpty,
 } from '@mui/icons-material';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
@@ -108,7 +108,7 @@ export default function RegisterPage() {
   const [emailVal, setEmailVal]   = useState('');
   const [mobileVal, setMobileVal] = useState('');
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue, control } = useForm({
+  const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
   });
 

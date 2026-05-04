@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Custom operational error class
  * Distinguishes programming errors from operational errors
  */

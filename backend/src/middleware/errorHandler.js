@@ -1,4 +1,4 @@
-﻿const logger = require('../utils/logger');
+const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
   let { statusCode = 500, message } = err;

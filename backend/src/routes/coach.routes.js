@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const { protect, restrictTo, requireEmailVerified } = require('../middleware/auth.middleware');
 const { coachDocUpload, profilePhotoUpload, handleMulterError } = require('../services/upload.service');
@@ -9,6 +9,7 @@ router.use(protect, requireEmailVerified, restrictTo('coach'));
 // ── Profile ──────────────────────────────────────────────────────────────────
 router.get('/profile',  coachProfileController.getProfile);
 router.patch('/profile', coachProfileController.updateProfile);
+router.patch('/profile/step/:step', coachProfileController.updateProfileStep);
 
 // ── Document uploads ─────────────────────────────────────────────────────────
 router.post(
@@ -16,6 +17,11 @@ router.post(
   coachDocUpload.single('file'),
   handleMulterError,
   coachProfileController.uploadDocument
+);
+
+router.delete(
+  '/profile/documents/:docType',
+  coachProfileController.deleteDocument
 );
 
 module.exports = router;

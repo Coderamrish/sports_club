@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
   Box, Typography, Card, CardContent, Button, Avatar,
   Chip, Grid, LinearProgress, Alert, List, ListItem,
@@ -60,6 +60,23 @@ export default function AthleteDashboard() {
 
   const registrationStatus = profile?.registrationStatus || 'Incomplete';
 
+  const getStatusMessage = () => {
+    switch (registrationStatus) {
+      case 'Incomplete':
+        return { text: '⚠️ Complete your profile to register for competitions.', severity: 'warning', action: completion < 100 };
+      case 'Pending Review':
+        return { text: '⏳ Your profile is under review. Admin will contact you shortly.', severity: 'info', action: false };
+      case 'Approved':
+        return { text: '✅ You are approved! You can now register for competitions.', severity: 'success', action: false };
+      case 'Rejected':
+        return { text: '❌ Your profile was rejected. Please review feedback and resubmit.', severity: 'error', action: true };
+      default:
+        return { text: 'Profile setup in progress.', severity: 'info', action: completion < 100 };
+    }
+  };
+
+  const statusMsg = getStatusMessage();
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Header */}
@@ -94,10 +111,10 @@ export default function AthleteDashboard() {
         ) : (
           <>
             <Alert
-              severity={completion === 100 ? 'success' : 'warning'}
+              severity={statusMsg.severity}
               sx={{ mb: 3 }}
               action={
-                completion < 100 && (
+                statusMsg.action && (
                   <Button color="inherit" size="small" startIcon={<Edit />}
                     onClick={() => navigate('/athlete/profile-setup')}>
                     {completion === 0 ? 'Start Setup' : 'Continue'}
@@ -105,9 +122,7 @@ export default function AthleteDashboard() {
                 )
               }
             >
-              {completion === 100
-                ? '✅ Profile complete! You can now register for competitions.'
-                : `⚠️ Profile ${completion}% complete. Finish all steps to register for competitions.`}
+              {statusMsg.text}
             </Alert>
 
             <Grid container spacing={3}>

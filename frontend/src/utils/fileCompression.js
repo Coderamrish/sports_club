@@ -1,4 +1,4 @@
-﻿import imageCompression from 'browser-image-compression';
+import imageCompression from 'browser-image-compression';
 
 /**
  * Compress an image file before upload

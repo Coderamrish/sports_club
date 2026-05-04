@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Grid, Card, CardContent, Typography, Avatar, Chip,
   List, ListItem, ListItemAvatar, ListItemText, Divider,
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     api.get('/admin/dashboard')
-      .then(r => setStats(r.data))
+      .then(r => setStats(r.data.data))
       .catch(() => setStats({}))
       .finally(() => setLoading(false));
   }, []);
@@ -128,6 +128,20 @@ export default function AdminDashboard() {
           </Grid>
         </Grid>
 
+        {/* Quick navigation buttons */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <Button variant="contained" startIcon={<People />}
+            onClick={() => navigate('/admin/athletes')}
+            sx={{ bgcolor: '#1565C0', '&:hover': { bgcolor: '#0d47a1' } }}>
+            Manage Athletes
+          </Button>
+          <Button variant="contained" startIcon={<SportsKabaddi />}
+            onClick={() => navigate('/admin/coaches')}
+            sx={{ bgcolor: '#2E7D32', '&:hover': { bgcolor: '#1b5e20' } }}>
+            Manage Coaches
+          </Button>
+        </Box>
+
         <Grid container spacing={3}>
           {/* Document verification queue */}
           <Grid item xs={12} md={6}>
@@ -155,7 +169,8 @@ export default function AdminDashboard() {
                       </Box>
                     ))}
                     {permissions.includes('approve_documents') && (
-                      <Button fullWidth variant="outlined" size="small" sx={{ mt: 2 }}>
+                      <Button fullWidth variant="outlined" size="small" sx={{ mt: 2 }}
+                        onClick={() => navigate('/admin/documents')}>
                         Review All Documents →
                       </Button>
                     )}

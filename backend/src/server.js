@@ -1,4 +1,4 @@
-﻿require('dotenv').config(); 
+require('dotenv').config(); 
 const app = require('./app');
 const connectDB = require('./config/database');
 const logger = require('./utils/logger');
@@ -17,10 +17,10 @@ connectDB().then(() => {
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  logger.error('UNHANDLED REJECTION:', err.message);
+  logger.error('UNHANDLED REJECTION:', err);
   process.exit(1);
 });
 process.on('uncaughtException', (err) => {
-  logger.error('UNCAUGHT EXCEPTION:', err.message);
+  console.error('UNCAUGHT EXCEPTION:', err);
   process.exit(1);
 });

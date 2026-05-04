@@ -2,6 +2,7 @@ const User            = require('../../models/User.model');
 const AthleteProfile  = require('../../models/AthleteProfile.model');
 const CoachProfile    = require('../../models/CoachProfile.model');
 const { AppError }    = require('../../utils/appError');
+const { sendProfileStatusEmail } = require('../../services/email.service');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/dashboard
@@ -191,7 +192,7 @@ exports.updateAthleteStatus = async (req, res, next) => {
       return next(new AppError(`Invalid status. Must be one of: ${VALID.join(', ')}`, 400));
     }
 
-    const profile = await AthleteProfile.findOne({ user: req.params.id });
+    const profile = await AthleteProfile.findOne({ user: req.params.id }).populate('user', 'email fullName');
     if (!profile) return next(new AppError('Athlete not found.', 404));
 
     profile.registrationStatus = status;
@@ -203,7 +204,16 @@ exports.updateAthleteStatus = async (req, res, next) => {
 
     await profile.save();
 
-    // TODO Phase 4: send email notification to athlete
+    // Send email notification to athlete
+    if (profile.user.email) {
+      sendProfileStatusEmail({
+        to: profile.user.email,
+        fullName: profile.user.fullName,
+        role: 'athlete',
+        status: status,
+        adminNotes: adminNotes
+      }).catch(err => console.error('Failed to send status email', err));
+    }
 
     res.status(200).json({
       success: true,
@@ -265,11 +275,12 @@ exports.reviewDocument = async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 exports.listCoaches = async (req, res, next) => {
   try {
-    const { page = 1, limit = 20, status, search } = req.query;
+    const { page = 1, limit = 20, status, search, specialization } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const profileFilter = {};
     if (status) profileFilter.profileStatus = status;
+    if (specialization) profileFilter.specialization = { $in: [specialization] };
 
     if (search) {
       const matchedUsers = await User.find({
@@ -277,6 +288,7 @@ exports.listCoaches = async (req, res, next) => {
         $or: [
           { fullName: { $regex: search, $options: 'i' } },
           { email:    { $regex: search, $options: 'i' } },
+          { mobile:   { $regex: search, $options: 'i' } },
         ],
       }).select('_id');
       if (matchedUsers.length === 0) {
@@ -310,6 +322,22 @@ exports.listCoaches = async (req, res, next) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/admin/coaches/:id  — single coach detail
+// ─────────────────────────────────────────────────────────────────────────────
+exports.getCoach = async (req, res, next) => {
+  try {
+    const profile = await CoachProfile.findOne({ user: req.params.id })
+      .populate('user', 'fullName email mobile createdAt isActive isEmailVerified');
+
+    if (!profile) return next(new AppError('Coach not found.', 404));
+
+    res.status(200).json({ success: true, data: { profile } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 //  PATCH /api/admin/coaches/:id/status
 // ─────────────────────────────────────────────────────────────────────────────
 exports.updateCoachStatus = async (req, res, next) => {
@@ -318,11 +346,21 @@ exports.updateCoachStatus = async (req, res, next) => {
     const VALID = ['Approved', 'Rejected', 'Pending Review', 'Incomplete'];
     if (!VALID.includes(status)) return next(new AppError('Invalid status.', 400));
 
-    const profile = await CoachProfile.findOne({ user: req.params.id });
+    const profile = await CoachProfile.findOne({ user: req.params.id }).populate('user', 'email fullName');
     if (!profile) return next(new AppError('Coach not found.', 404));
 
     profile.profileStatus = status;
     await profile.save();
+
+    // Send email notification to coach
+    if (profile.user.email) {
+      sendProfileStatusEmail({
+        to: profile.user.email,
+        fullName: profile.user.fullName,
+        role: 'coach',
+        status: status
+      }).catch(err => console.error('Failed to send status email', err));
+    }
 
     res.status(200).json({ success: true, message: `Coach profile ${status.toLowerCase()}.` });
   } catch (err) {

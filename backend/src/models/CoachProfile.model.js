@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const coachProfileSchema = new mongoose.Schema(
   {
@@ -60,6 +60,7 @@ const coachProfileSchema = new mongoose.Schema(
       default: 'Incomplete',
       index: true,
     },
+    formStep: { type: Number, default: 1 },
 
     // ─── Assigned Athletes (future feature) ───────────────────────
     assignedAthletes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

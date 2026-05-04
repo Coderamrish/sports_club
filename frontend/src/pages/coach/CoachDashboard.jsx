@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Card, CardContent, Avatar, Button, Grid,
   Alert, LinearProgress, CircularProgress, TextField, MenuItem,
@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import {
   SportsKabaddi, People, EmojiEvents, Logout,
-  Edit, Save, Cancel, CheckCircle,
+  Edit, Save, Cancel,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -91,6 +91,23 @@ export default function CoachDashboard() {
 
   const profileStatus = profile?.profileStatus || 'Incomplete';
 
+  const getStatusMessage = () => {
+    switch (profileStatus) {
+      case 'Incomplete':
+        return { text: '⚠️ Profile incomplete. Fill in your details to submit for review.', severity: 'warning' };
+      case 'Pending Review':
+        return { text: '⏳ Your profile is under review. Admin will contact you shortly.', severity: 'info' };
+      case 'Approved':
+        return { text: '✅ Your profile has been approved! You can now coach athletes.', severity: 'success' };
+      case 'Rejected':
+        return { text: '❌ Your profile was rejected. Please review feedback and resubmit.', severity: 'error' };
+      default:
+        return { text: 'Profile status unknown', severity: 'warning' };
+    }
+  };
+
+  const statusMsg = getStatusMessage();
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
 
@@ -143,18 +160,16 @@ export default function CoachDashboard() {
 
             {/* ── Status banner ── */}
             <Alert
-              severity={completion === 100 ? 'success' : 'warning'}
+              severity={statusMsg.severity}
               sx={{ mb: 3 }}
-              action={!editing && (
+              action={!editing && profileStatus === 'Incomplete' && (
                 <Button color="inherit" size="small" startIcon={<Edit />}
                   onClick={() => setEditing(true)}>
-                  {completion === 0 ? 'Setup Profile' : 'Edit'}
+                  Edit Profile
                 </Button>
               )}
             >
-              {completion === 100
-                ? '✅ Profile complete! Awaiting admin approval.'
-                : `⚠️ Profile ${completion}% complete. Fill in your details to get approved.`}
+              {statusMsg.text}
             </Alert>
 
             {/* ── Stat cards ── */}

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material';
 import { Provider } from 'react-redux';
@@ -14,11 +14,13 @@ import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
 import AthleteDashboard    from './pages/athlete/AthleteDashboard';
 import AthleteProfileSetup from './pages/athlete/AthleteProfileSetup';
 import CoachDashboard      from './pages/coach/CoachDashboard';
+import CoachProfileSetup   from './pages/coach/CoachProfileSetup';
 import AdminDashboard      from './pages/admin/AdminDashboard';
 import AdminManagement     from './pages/admin/AdminManagement';
 import AthleteManagement   from './pages/admin/AthleteManagement';
 import CoachManagement     from './pages/admin/CoachManagement';
 import AthleteDetailPage   from './pages/admin/AthleteDetailPage';
+import CoachDetailPage     from './pages/admin/CoachDetailPage';
 
 export default function App() {
   return (
@@ -64,6 +66,11 @@ export default function App() {
                 <CoachDashboard />
               </ProtectedRoute>
             } />
+            <Route path="/coach/profile-setup" element={
+              <ProtectedRoute allowedRoles={['coach']}>
+                <CoachProfileSetup />
+              </ProtectedRoute>
+            } />
 
             {/* Admin */}
             <Route path="/admin/dashboard" element={
@@ -89,6 +96,11 @@ export default function App() {
             <Route path="/admin/coaches" element={
               <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_all_profiles']}>
                 <CoachManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/coaches/:id" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_all_profiles']}>
+                <CoachDetailPage />
               </ProtectedRoute>
             } />
 

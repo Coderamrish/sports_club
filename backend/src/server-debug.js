@@ -1,4 +1,4 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 
 // Override logger to show errors immediately
 process.on('uncaughtException', (err) => {

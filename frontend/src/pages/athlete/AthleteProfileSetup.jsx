@@ -711,24 +711,45 @@ function Step7Declaration({ onSave, isSaving, onBack }) {
 
 // ─── Step 8: Payment ──────────────────────────────────────────────────────────
 function Step8Payment({ profile, onGoToDashboard, onBack }) {
+  const isApproved = profile?.registrationStatus === 'Approved';
+
+  const handlePayment = () => {
+    toast.success("Payment Gateway Integration is coming in Phase 4!");
+  };
+
   return (
     <Card>
       <CardContent sx={{ p: 4, textAlign: 'center' }}>
-        <Avatar sx={{ bgcolor: 'success.100', color: 'success.main', width: 72, height: 72, mx: 'auto', mb: 2 }}>
+        <Avatar sx={{ bgcolor: isApproved ? 'success.100' : 'warning.100', color: isApproved ? 'success.main' : 'warning.main', width: 72, height: 72, mx: 'auto', mb: 2 }}>
           <CheckCircle sx={{ fontSize: 40 }} />
         </Avatar>
-        <Typography variant="h5" fontWeight={700} mb={1}>Profile Submitted!</Typography>
+        <Typography variant="h5" fontWeight={700} mb={1}>
+          {isApproved ? 'Profile Approved!' : 'Profile Submitted!'}
+        </Typography>
         <Typography color="text.secondary" mb={3}>
-          Your profile is under review. You'll receive an email once approved.
+          {isApproved 
+            ? 'Your profile has been approved by the admin. You can now proceed to pay the registration fee.'
+            : 'Your profile is under review. You\'ll receive an email once approved.'}
         </Typography>
         <Chip
           label={`Status: ${profile?.registrationStatus || 'Pending Review'}`}
-          color="warning" sx={{ mb: 3, fontWeight: 600 }}
+          color={isApproved ? 'success' : 'warning'} sx={{ mb: 3, fontWeight: 600 }}
         />
-        <Typography variant="body2" color="text.secondary" mb={3}>
-          Registration fee payment will be enabled once your documents are approved by the admin.
-        </Typography>
-        <Button variant="contained" size="large" onClick={onGoToDashboard} sx={{ px: 4 }}>
+        
+        {isApproved ? (
+          <Box sx={{ mb: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
+            <Typography variant="body1" fontWeight={600} mb={1}>Registration Fee: ₹1,500</Typography>
+            <Button variant="contained" color="primary" size="large" onClick={handlePayment} sx={{ px: 4, mt: 1 }}>
+              Pay Now
+            </Button>
+          </Box>
+        ) : (
+          <Typography variant="body2" color="text.secondary" mb={3}>
+            Registration fee payment will be enabled once your documents are approved by the admin.
+          </Typography>
+        )}
+        
+        <Button variant="outlined" size="large" onClick={onGoToDashboard} sx={{ px: 4 }}>
           Go to Dashboard
         </Button>
       </CardContent>

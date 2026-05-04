@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Seed Script — Creates the initial Super Admin account
  * Run once: npm run seed
  *

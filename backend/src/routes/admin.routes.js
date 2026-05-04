@@ -1,4 +1,4 @@
-﻿const express  = require('express');
+const express  = require('express');
 const router   = express.Router();
 
 const adminAuthController       = require('../controllers/admin/adminAuth.controller');
@@ -48,6 +48,10 @@ router.patch('/athletes/:id/documents/:docType',
 router.get('/coaches',
   requirePermission('view_all_profiles'),
   adminManagementController.listCoaches
+);
+router.get('/coaches/:id',
+  requirePermission('view_all_profiles'),
+  adminManagementController.getCoach
 );
 router.patch('/coaches/:id/status',
   requirePermission('approve_documents'),

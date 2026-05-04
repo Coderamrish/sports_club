@@ -1,4 +1,4 @@
-﻿const User = require('../../models/User.model');
+const User = require('../../models/User.model');
 const AthleteProfile = require('../../models/AthleteProfile.model');
 const CoachProfile = require('../../models/CoachProfile.model');
 const { sendEmailOTP, verifyOTP, checkOTPCooldown } = require('../../services/otp.service');

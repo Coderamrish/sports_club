@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, CircularProgress, Alert, Button } from '@mui/material';
@@ -19,19 +19,21 @@ export default function ProtectedRoute({
   const user            = useSelector(selectCurrentUser);
   const isLoading       = useSelector(selectAuthLoading);
   const token           = localStorage.getItem('accessToken');
-
-  // Track whether we've finished the initial auth check
-  const [isInitializing, setIsInitializing] = useState(!!token && !user);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    if (token && !user && !isLoading) {
-      dispatch(fetchCurrentUser()).finally(() => setIsInitializing(false));
-    } else {
+    const initializeAuth = async () => {
+      // If we have a token but no user in Redux (e.g., after page refresh), fetch current user
+      if (token && !user) {
+        await dispatch(fetchCurrentUser());
+      }
       setIsInitializing(false);
-    }
-  }, []); // run once on mount only
+    };
+    
+    initializeAuth();
+  }, []); // Run only once on mount
 
-  // Show spinner while fetching user on refresh
+  // Show spinner while initializing or fetching user
   if (isInitializing || isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
@@ -50,7 +52,7 @@ export default function ProtectedRoute({
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Role check
+  // Role check - redirect to correct dashboard if role not allowed
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     const roleRedirects = {
       athlete: '/athlete/dashboard',

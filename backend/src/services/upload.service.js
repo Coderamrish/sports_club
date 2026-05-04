@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Upload Service
  * ─────────────────────────────────────────────────────────
  * Currently uses LOCAL disk storage (multer default).

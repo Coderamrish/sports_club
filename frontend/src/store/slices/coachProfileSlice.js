@@ -17,16 +17,43 @@ export const saveCoachProfile = createAsyncThunk(
   }
 );
 
+export const saveCoachProfileStep = createAsyncThunk(
+  'coachProfile/saveStep',
+  async ({ step, data }, { rejectWithValue }) => {
+    try { return await profileService.updateCoachProfileStep(step, data); }
+    catch (err) { return rejectWithValue(err.response?.data || { message: err.message }); }
+  }
+);
+
+export const uploadCoachDoc = createAsyncThunk(
+  'coachProfile/uploadDoc',
+  async ({ docType, file, name }, { rejectWithValue }) => {
+    try { return await profileService.uploadCoachDocument(docType, file, name); }
+    catch (err) { return rejectWithValue(err.response?.data || { message: err.message }); }
+  }
+);
+
+export const deleteCoachDoc = createAsyncThunk(
+  'coachProfile/deleteDoc',
+  async (docType, { rejectWithValue }) => {
+    try { return await profileService.deleteCoachDocument(docType); }
+    catch (err) { return rejectWithValue(err.response?.data || { message: err.message }); }
+  }
+);
+
 const coachProfileSlice = createSlice({
   name: 'coachProfile',
   initialState: {
     coachProfile: null,
+    currentStep:  1,
     isLoading:    false,
     isSaving:     false,
+    isUploading:  false,
     error:        null,
   },
   reducers: {
     clearCoachError: (state) => { state.error = null; },
+    setCurrentStep:  (state, action) => { state.currentStep = action.payload; },
   },
   extraReducers: (builder) => {
     builder
@@ -34,6 +61,7 @@ const coachProfileSlice = createSlice({
       .addCase(fetchCoachProfile.fulfilled, (state, action) => {
         state.isLoading    = false;
         state.coachProfile = action.payload?.data?.profile ?? null;
+        state.currentStep  = action.payload?.data?.profile?.formStep ?? 1;
       })
       .addCase(fetchCoachProfile.rejected,  (state, action) => {
         state.isLoading = false;
@@ -50,20 +78,48 @@ const coachProfileSlice = createSlice({
         state.isSaving = false;
         state.error    = action.payload?.message || 'Failed to save';
       });
+
+    builder
+      .addCase(saveCoachProfileStep.pending,   (state) => { state.isSaving = true;  state.error = null; })
+      .addCase(saveCoachProfileStep.fulfilled, (state, action) => {
+        state.isSaving     = false;
+        state.coachProfile = action.payload?.data?.profile ?? null;
+        state.currentStep  = action.payload?.data?.nextStep ?? state.currentStep + 1;
+      })
+      .addCase(saveCoachProfileStep.rejected,  (state, action) => {
+        state.isSaving = false;
+        state.error    = action.payload?.message || 'Failed to save step';
+      });
+
+    builder
+      .addCase(uploadCoachDoc.pending,   (state) => { state.isUploading = true;  state.error = null; })
+      .addCase(uploadCoachDoc.fulfilled, (state) => { state.isUploading = false; })
+      .addCase(uploadCoachDoc.rejected,  (state, action) => {
+        state.isUploading = false;
+        state.error       = action.payload?.message || 'Upload failed';
+      });
+
+    builder
+      .addCase(deleteCoachDoc.pending,   (state) => { state.isUploading = true;  state.error = null; })
+      .addCase(deleteCoachDoc.fulfilled, (state) => { state.isUploading = false; })
+      .addCase(deleteCoachDoc.rejected,  (state, action) => {
+        state.isUploading = false;
+        state.error       = action.payload?.message || 'Delete failed';
+      });
   },
 });
 
-export const { clearCoachError } = coachProfileSlice.actions;
+export const { clearCoachError, setCurrentStep } = coachProfileSlice.actions;
 
 export const selectCoachProfile   = (s) => s.coachProfile.coachProfile;
+export const selectCoachCurrentStep = (s) => s.coachProfile.currentStep;
 export const selectCoachLoading   = (s) => s.coachProfile.isLoading;
 export const selectCoachSaving    = (s) => s.coachProfile.isSaving;
+export const selectCoachUploading = (s) => s.coachProfile.isUploading;
 export const selectCoachError     = (s) => s.coachProfile.error;
 export const selectCoachCompletion = (s) => {
-  const p = s.coachProfile.coachProfile;
-  if (!p) return 0;
-  const fields = [p.gender, p.specialization?.length, p.experienceYears, p.clubName, p.bio];
-  return Math.round((fields.filter(Boolean).length / fields.length) * 100);
+  const step = s.coachProfile.coachProfile?.formStep ?? 1;
+  return Math.round(((step - 1) / 5) * 100);
 };
 
 export default coachProfileSlice.reducer;

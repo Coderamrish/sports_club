@@ -1,4 +1,4 @@
-﻿const User = require('../../models/User.model');
+const User = require('../../models/User.model');
 const { sendEmailOTP, verifyOTP, checkOTPCooldown } = require('../../services/otp.service');
 const { sendWelcomeEmail, sendEmail } = require('../../services/email.service');
 const { sendTokenResponse, verifyRefreshToken, generateAccessToken } = require('../../utils/jwt.utils');

@@ -1,4 +1,4 @@
-﻿const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 const logger = require('../utils/logger');
 
 let transporter;
@@ -162,4 +162,38 @@ const sendDocumentStatusEmail = async ({ to, fullName, documentName, status, rea
   return sendEmail({ to, subject: `Document ${status}: ${documentName}`, html });
 };
 
-module.exports = { sendEmail, sendOTPEmail, sendWelcomeEmail, sendDocumentStatusEmail };
+/**
+ * Send profile status update email
+ */
+const sendProfileStatusEmail = async ({ to, fullName, role, status, adminNotes }) => {
+  const statusColors = { Approved: '#4CAF50', Rejected: '#F44336', 'Pending Review': '#FF9800', Incomplete: '#9E9E9E' };
+  const color = statusColors[status] || '#1565C0';
+  const roleLabel = role.charAt(0).toUpperCase() + role.slice(1);
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0}
+      .container{max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+      .header{background:linear-gradient(135deg,#1565C0,#0D47A1);padding:32px;text-align:center;color:white}
+      .body{padding:36px 32px}
+      .status-badge{display:inline-block;background:${color};color:white;padding:8px 20px;border-radius:20px;font-weight:bold;font-size:15px}
+      .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
+    </style></head>
+    <body><div class="container">
+      <div class="header"><h1>📋 Profile Update</h1></div>
+      <div class="body">
+        <p>Hello <strong>${fullName}</strong>,</p>
+        <p>Your <strong>${roleLabel}</strong> profile has been reviewed by the admin.</p>
+        <p>Status: <span class="status-badge">${status}</span></p>
+        ${adminNotes ? `<p style="background:#FFF3E0;padding:12px;border-radius:6px;border-left:4px solid ${color}"><strong>Admin Notes:</strong> ${adminNotes}</p>` : ''}
+        ${status === 'Approved' ? '<p>Congratulations! You can now access all features of the platform.</p>' : ''}
+        ${status === 'Rejected' ? '<p>Please review the notes and update your profile from your dashboard.</p>' : ''}
+      </div>
+      <div class="footer">© ${new Date().getFullYear()} Sports Club Management System</div>
+    </div></body></html>
+  `;
+
+  return sendEmail({ to, subject: `Profile ${status}: ${roleLabel}`, html });
+};
+
+module.exports = { sendEmail, sendOTPEmail, sendWelcomeEmail, sendDocumentStatusEmail, sendProfileStatusEmail };

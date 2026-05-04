@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const router = express.Router();
 const { protect, restrictTo, requireEmailVerified } = require('../middleware/auth.middleware');
 const { athleteDocUpload, profilePhotoUpload, handleMulterError } = require('../services/upload.service');

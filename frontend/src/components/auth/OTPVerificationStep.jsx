@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, Button, Alert, CircularProgress,
   Paper, Link,

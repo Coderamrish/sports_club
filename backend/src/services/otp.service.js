@@ -1,4 +1,4 @@
-﻿const crypto = require('crypto');
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const OTP = require('../models/OTP.model');
 const emailService = require('./email.service');
