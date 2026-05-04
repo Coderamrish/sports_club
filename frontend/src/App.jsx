@@ -1,4 +1,4 @@
-﻿import React, { Suspense } from 'react';
+﻿import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, Box, CircularProgress } from '@mui/material';
 import { Provider } from 'react-redux';
@@ -7,23 +7,18 @@ import theme from './theme';
 import store from './store';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
-// Auth pages
-import LoginPage          from './pages/auth/LoginPage';
-import RegisterPage       from './pages/auth/RegisterPage';
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import LoginPage           from './pages/auth/LoginPage';
+import RegisterPage        from './pages/auth/RegisterPage';
+import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
 
-// Dashboards
-import AthleteDashboard   from './pages/athlete/AthleteDashboard';
+import AthleteDashboard    from './pages/athlete/AthleteDashboard';
 import AthleteProfileSetup from './pages/athlete/AthleteProfileSetup';
-import CoachDashboard     from './pages/coach/CoachDashboard';
-import AdminDashboard     from './pages/admin/AdminDashboard';
-import AdminManagement    from './pages/admin/AdminManagement';
-
-const Spinner = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-    <CircularProgress />
-  </Box>
-);
+import CoachDashboard      from './pages/coach/CoachDashboard';
+import AdminDashboard      from './pages/admin/AdminDashboard';
+import AdminManagement     from './pages/admin/AdminManagement';
+import AthleteManagement   from './pages/admin/AthleteManagement';
+import CoachManagement     from './pages/admin/CoachManagement';
+import AthleteDetailPage   from './pages/admin/AthleteDetailPage';
 
 export default function App() {
   return (
@@ -37,9 +32,13 @@ export default function App() {
             style: { borderRadius: '10px', fontFamily: '"Inter", "Roboto", sans-serif' },
           }}
         />
-        <BrowserRouter>
+        <BrowserRouter
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true,
+          }}
+        >
           <Routes>
-            {/* Root */}
             <Route path="/" element={<Navigate to="/auth/login" replace />} />
 
             {/* Public */}
@@ -60,7 +59,7 @@ export default function App() {
             } />
 
             {/* Coach */}
-            <Route path="/coach/*" element={
+            <Route path="/coach/dashboard" element={
               <ProtectedRoute allowedRoles={['coach']}>
                 <CoachDashboard />
               </ProtectedRoute>
@@ -77,10 +76,26 @@ export default function App() {
                 <AdminManagement />
               </ProtectedRoute>
             } />
+            <Route path="/admin/athletes" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_all_profiles']}>
+                <AthleteManagement />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/athletes/:id" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_all_profiles']}>
+                <AthleteDetailPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/coaches" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_all_profiles']}>
+                <CoachManagement />
+              </ProtectedRoute>
+            } />
 
-            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="/athlete" element={<Navigate to="/athlete/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/auth/login" replace />} />
+            <Route path="/admin"   element={<Navigate to="/admin/dashboard"   replace />} />
+            <Route path="/athlete" element={<Navigate to="/athlete/dashboard"  replace />} />
+            <Route path="/coach"   element={<Navigate to="/coach/dashboard"    replace />} />
+            <Route path="*"        element={<Navigate to="/auth/login"         replace />} />
           </Routes>
         </BrowserRouter>
       </ThemeProvider>

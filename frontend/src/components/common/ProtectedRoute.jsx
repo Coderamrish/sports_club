@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, CircularProgress, Alert, Button } from '@mui/material';
@@ -7,38 +7,32 @@ import {
   fetchCurrentUser,
 } from '../../store/slices/authSlice';
 
-/**
- * ProtectedRoute — Guards routes by:
- *   1. Authentication (valid token + user loaded)
- *   2. Role (allowedRoles: ['athlete', 'coach', 'admin'])
- *   3. Admin level (adminLevels: ['super_admin', 'admin', 'moderator'])
- *   4. Admin permissions (requiredPermissions: ['manage_athletes', ...])
- *
- * Usage:
- *   <ProtectedRoute allowedRoles={['admin']} adminLevels={['super_admin']} />
- *   <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['manage_payments']} />
- */
 export default function ProtectedRoute({
   children,
   allowedRoles         = [],
-  adminLevels          = [],      // optional: restrict to specific admin sub-levels
-  requiredPermissions  = [],      // optional: specific permissions needed
+  adminLevels          = [],
+  requiredPermissions  = [],
 }) {
-  const dispatch         = useDispatch();
-  const location         = useLocation();
-  const isAuthenticated  = useSelector(selectIsAuthenticated);
-  const user             = useSelector(selectCurrentUser);
-  const isLoading        = useSelector(selectAuthLoading);
-  const token            = localStorage.getItem('accessToken');
+  const dispatch        = useDispatch();
+  const location        = useLocation();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const user            = useSelector(selectCurrentUser);
+  const isLoading       = useSelector(selectAuthLoading);
+  const token           = localStorage.getItem('accessToken');
+
+  // Track whether we've finished the initial auth check
+  const [isInitializing, setIsInitializing] = useState(!!token && !user);
 
   useEffect(() => {
     if (token && !user && !isLoading) {
-      dispatch(fetchCurrentUser());
+      dispatch(fetchCurrentUser()).finally(() => setIsInitializing(false));
+    } else {
+      setIsInitializing(false);
     }
-  }, [token, user, isLoading, dispatch]);
+  }, []); // run once on mount only
 
-  // Loading state
-  if (token && !user && isLoading) {
+  // Show spinner while fetching user on refresh
+  if (isInitializing || isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
         <CircularProgress />
@@ -46,13 +40,15 @@ export default function ProtectedRoute({
     );
   }
 
-  // Not authenticated
-  if (!token || (!user && !isLoading)) {
+  // No token — send to login
+  if (!token) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Still loading user
-  if (!user) return null;
+  // Token exists but user failed to load (expired / invalid token)
+  if (!user) {
+    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+  }
 
   // Role check
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
@@ -84,8 +80,8 @@ export default function ProtectedRoute({
   if (requiredPermissions.length > 0 && user.role === 'admin') {
     const isSuperAdmin = user.adminLevel === 'super_admin';
     if (!isSuperAdmin) {
-      const userPerms  = user.permissions || [];
-      const missing    = requiredPermissions.filter(p => !userPerms.includes(p));
+      const userPerms = user.permissions || [];
+      const missing   = requiredPermissions.filter(p => !userPerms.includes(p));
       if (missing.length > 0) {
         return (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 2 }}>

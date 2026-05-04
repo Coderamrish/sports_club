@@ -55,7 +55,7 @@ const authSlice = createSlice({
   initialState: {
     user:              null,
     accessToken:       localStorage.getItem('accessToken') || null,
-    isAuthenticated:   false,
+    isAuthenticated:    !!localStorage.getItem('accessToken'), 
     isLoading:         false,
     error:             null,
     pendingEmail:      null,
