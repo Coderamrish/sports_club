@@ -61,7 +61,7 @@ router.patch('/coaches/:id/status',
 // ── Competition management ──────────────────────────────────────────────────
 const competitionController = require('../controllers/competition.controller');
 router.post('/competitions',
-  requirePermission('manage_settings'),
+  requirePermission('manage_competitions'),
   auditLog('create_competition'),
   competitionController.createCompetition
 );
@@ -70,11 +70,11 @@ router.get('/competitions',
   competitionController.getAllCompetitions
 );
 router.get('/competitions/:competitionId/registrations',
-  requirePermission('manage_settings'),
+  requirePermission('manage_competitions'),
   adminManagementController.getCompetitionRegistrations
 );
 router.patch('/competitions/registrations/:id/status',
-  requirePermission('manage_settings'),
+  requirePermission('manage_competitions'),
   adminManagementController.updateRegistrationStatus
 );
 

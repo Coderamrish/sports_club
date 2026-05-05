@@ -125,7 +125,7 @@ export default function App() {
               </ProtectedRoute>
             } />
             <Route path="/admin/competitions" element={
-              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['manage_settings']}>
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['manage_competitions']}>
                 <AdminCompetitions />
               </ProtectedRoute>
             } />

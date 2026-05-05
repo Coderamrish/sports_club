@@ -1,8 +1,8 @@
-// backend/src/controllers/athlete/competitionRegistration.controller.js
-const Competition = require('../../models/Competition.model');
-const CompetitionRegistration = require('../../models/CompetitionRegistration.model');
-const AthleteProfile = require('../../models/AthleteProfile.model');
-const { AppError } = require('../../utils/appError');
+const Competition = require('../models/Competition.model');
+const CompetitionRegistration = require('../models/CompetitionRegistration.model');
+const AthleteProfile = require('../models/AthleteProfile.model');
+const CoachProfile = require('../models/CoachProfile.model');
+const { AppError } = require('../utils/appError');
 
 /**
  * GET /api/athletes/competitions
@@ -35,7 +35,7 @@ exports.registerForCompetition = async (req, res, next) => {
     // Check profile is approved based on role
     let isApproved = false;
     if (req.user.role === 'coach') {
-      const profile = await require('../../models/CoachProfile.model').findOne({ user: req.user._id });
+      const profile = await CoachProfile.findOne({ user: req.user._id });
       if (!profile) return next(new AppError('Profile not found.', 404));
       isApproved = profile.profileStatus === 'Approved';
     } else {
