@@ -196,4 +196,172 @@ const sendProfileStatusEmail = async ({ to, fullName, role, status, adminNotes }
   return sendEmail({ to, subject: `Profile ${status}: ${roleLabel}`, html });
 };
 
-module.exports = { sendEmail, sendOTPEmail, sendWelcomeEmail, sendDocumentStatusEmail, sendProfileStatusEmail };
+/**
+ * Send payment confirmation email (competition or profile fee)
+ */
+const sendPaymentConfirmationEmail = async ({
+  to, fullName, type, competition, amount, txnId, orderId, paidAt,
+}) => {
+  const formattedDate = paidAt
+    ? new Date(paidAt).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })
+    : new Date().toLocaleString('en-IN');
+
+  const isComp = type === 'competition';
+  const subject = isComp
+    ? `✅ Payment Confirmed – ${competition?.title || 'Competition'}`
+    : '✅ Profile Registration Fee Paid';
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0;padding:0}
+      .container{max-width:560px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+      .header{background:linear-gradient(135deg,#2E7D32,#388E3C);padding:32px;text-align:center;color:white}
+      .header h1{margin:0;font-size:24px}
+      .header p{margin:8px 0 0;opacity:.85;font-size:14px}
+      .body{padding:36px 32px;color:#333}
+      .receipt{background:#F1F8E9;border:1px solid #A5D6A7;border-radius:10px;padding:20px;margin:20px 0}
+      .receipt-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #C8E6C9;font-size:14px}
+      .receipt-row:last-child{border-bottom:none;font-weight:700;font-size:16px;color:#2E7D32}
+      .badge{display:inline-block;background:#2E7D32;color:white;padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600}
+      .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
+    </style></head>
+    <body><div class="container">
+      <div class="header">
+        <h1>🎉 Payment Successful!</h1>
+        <p>Your payment has been confirmed</p>
+      </div>
+      <div class="body">
+        <p>Hello <strong>${fullName}</strong>,</p>
+        <p>We have received your payment successfully. Here is your receipt:</p>
+
+        <div class="receipt">
+          ${isComp ? `
+          <div class="receipt-row">
+            <span>Competition</span>
+            <span>${competition?.title || '—'}</span>
+          </div>
+          <div class="receipt-row">
+            <span>Event Date</span>
+            <span>${competition?.date ? new Date(competition.date).toLocaleDateString('en-IN') : '—'}</span>
+          </div>
+          <div class="receipt-row">
+            <span>Venue</span>
+            <span>${competition?.venue || '—'}</span>
+          </div>
+          ` : `
+          <div class="receipt-row">
+            <span>Description</span>
+            <span>Profile Registration Fee</span>
+          </div>
+          `}
+          <div class="receipt-row">
+            <span>Transaction ID</span>
+            <span style="font-family:monospace;font-size:12px">${txnId}</span>
+          </div>
+          <div class="receipt-row">
+            <span>Order ID</span>
+            <span style="font-family:monospace;font-size:12px">${orderId}</span>
+          </div>
+          <div class="receipt-row">
+            <span>Paid On</span>
+            <span>${formattedDate}</span>
+          </div>
+          <div class="receipt-row">
+            <span>Amount Paid</span>
+            <span>₹${amount}</span>
+          </div>
+        </div>
+
+        <p>Status: <span class="badge">✓ PAID</span></p>
+        <p style="color:#555;font-size:14px">
+          ${isComp
+            ? 'Your competition slot is confirmed pending admin approval. You will be notified once the admin reviews your registration.'
+            : 'Your profile registration fee is confirmed. Login to your dashboard to complete your profile.'}
+        </p>
+        <p style="color:#888;font-size:13px">Keep this email as your payment receipt. Contact support if you have any questions.</p>
+      </div>
+      <div class="footer">© ${new Date().getFullYear()} Sports Club Management System · All rights reserved</div>
+    </div></body></html>
+  `;
+
+  return sendEmail({ to, subject, html });
+};
+
+/**
+ * Send payment failed email
+ */
+const sendPaymentFailedEmail = async ({ to, fullName, amount, orderId, reason }) => {
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0}
+      .container{max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+      .header{background:linear-gradient(135deg,#C62828,#E53935);padding:32px;text-align:center;color:white}
+      .body{padding:36px 32px;color:#333}
+      .error-box{background:#FFEBEE;border:1px solid #EF9A9A;border-radius:8px;padding:16px;margin:16px 0;color:#C62828}
+      .btn{display:inline-block;background:#1565C0;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px}
+      .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
+    </style></head>
+    <body><div class="container">
+      <div class="header"><h1>❌ Payment Failed</h1></div>
+      <div class="body">
+        <p>Hello <strong>${fullName}</strong>,</p>
+        <p>Unfortunately, your payment of <strong>₹${amount}</strong> could not be processed.</p>
+        <div class="error-box">
+          <strong>Reason:</strong> ${reason || 'Transaction was declined or timed out.'}
+          <br><strong>Order ID:</strong> ${orderId}
+        </div>
+        <p>No money has been deducted from your account. You can retry the payment from your dashboard.</p>
+        <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}" class="btn">Go to Dashboard →</a>
+      </div>
+      <div class="footer">© ${new Date().getFullYear()} Sports Club Management System</div>
+    </div></body></html>
+  `;
+  return sendEmail({ to, subject: '❌ Payment Failed – Sports Club', html });
+};
+
+/**
+ * Send competition registration approval email (when admin accepts)
+ */
+const sendRegistrationApprovalEmail = async ({ to, fullName, competitionTitle, competitionDate, venue, paymentStatus }) => {
+  const isPaid = paymentStatus === 'Paid';
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:Arial,sans-serif;background:#f5f5f5;margin:0}
+      .container{max-width:520px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1)}
+      .header{background:linear-gradient(135deg,#1565C0,#1E88E5);padding:32px;text-align:center;color:white}
+      .body{padding:36px 32px;color:#333}
+      .detail-box{background:#E3F2FD;border-radius:8px;padding:16px;margin:16px 0}
+      .detail-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #BBDEFB}
+      .detail-row:last-child{border:none}
+      .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
+    </style></head>
+    <body><div class="container">
+      <div class="header"><h1>🏆 Registration Approved!</h1></div>
+      <div class="body">
+        <p>Hello <strong>${fullName}</strong>,</p>
+        <p>Great news! Your competition registration has been <strong>approved</strong> by the admin.</p>
+        <div class="detail-box">
+          <div class="detail-row"><span>Competition</span><strong>${competitionTitle}</strong></div>
+          <div class="detail-row"><span>Date</span><span>${competitionDate ? new Date(competitionDate).toLocaleDateString('en-IN') : '—'}</span></div>
+          <div class="detail-row"><span>Venue</span><span>${venue || '—'}</span></div>
+          <div class="detail-row"><span>Payment</span><span style="color:${isPaid ? '#2E7D32' : '#E65100'}">${isPaid ? '✓ Paid' : '⚠ Pending – Please pay to confirm your slot'}</span></div>
+        </div>
+        ${!isPaid ? `<p style="color:#E65100;background:#FFF3E0;padding:12px;border-radius:6px">⚠️ Your slot is not confirmed until payment is completed. Login to your dashboard to pay now.</p>` : ''}
+        <p>Good luck! 🎯</p>
+      </div>
+      <div class="footer">© ${new Date().getFullYear()} Sports Club Management System</div>
+    </div></body></html>
+  `;
+  return sendEmail({ to, subject: `✅ Registration Approved – ${competitionTitle}`, html });
+};
+
+module.exports = {
+  sendEmail,
+  sendOTPEmail,
+  sendWelcomeEmail,
+  sendDocumentStatusEmail,
+  sendProfileStatusEmail,
+  sendPaymentConfirmationEmail,
+  sendPaymentFailedEmail,
+  sendRegistrationApprovalEmail,
+};

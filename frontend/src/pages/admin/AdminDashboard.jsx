@@ -149,6 +149,11 @@ export default function AdminDashboard() {
             sx={{ bgcolor: '#F57F17', '&:hover': { bgcolor: '#e65100' } }}>
             Manage Competitions
           </Button>
+          <Button variant="contained" startIcon={<Payments />}
+            onClick={() => navigate('/admin/payments')}
+            sx={{ bgcolor: '#6A1B9A', '&:hover': { bgcolor: '#4a148c' } }}>
+            Payment Management
+          </Button>
         </Box>
 
         <Grid container spacing={3}>

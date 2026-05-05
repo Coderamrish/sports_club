@@ -10,13 +10,14 @@ import {
 } from '@mui/material';
 import {
   EmojiEvents, CalendarToday, LocationOn, Payment,
-  CheckCircle, ArrowBack, Logout, Warning
+  CheckCircle, ArrowBack, Logout, Warning, Receipt
 } from '@mui/icons-material';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from '../../store/slices/authSlice';
 import { selectAthleteProfile } from '../../store/slices/profileSlice';
 import { selectCoachProfile } from '../../store/slices/coachProfileSlice';
 import api from '../../services/api';
+import { initiatePayment } from '../../services/payment.service';
 import toast from 'react-hot-toast';
 
 export default function Competitions() {
@@ -35,6 +36,7 @@ export default function Competitions() {
   const [selectedComp, setSelectedComp] = useState(null);
   const [registering, setRegistering] = useState(false);
   const [tab, setTab] = useState('available'); // 'available' | 'mine'
+  const [payingId, setPayingId] = useState(null); // registrationId currently being paid
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,7 +61,7 @@ export default function Competitions() {
     setRegistering(true);
     try {
       await api.post(`${apiRoute}/register`, { competitionId: selectedComp._id });
-      toast.success('Registered successfully!');
+      toast.success('Registered! Awaiting admin approval.');
       setSelectedComp(null);
       fetchData();
     } catch (err) {
@@ -67,6 +69,27 @@ export default function Competitions() {
     } finally {
       setRegistering(false);
     }
+  };
+
+  const handlePayNow = (reg) => {
+    setPayingId(reg._id);
+    initiatePayment({
+      entityType:  'competition_registration',
+      entityId:    reg._id,
+      description: `Competition fee – ${reg.competition?.title || 'Competition'}`,
+      onSuccess: () => {
+        toast.success('🎉 Payment successful! Confirmation email sent.');
+        setPayingId(null);
+        fetchData();
+      },
+      onFailure: (err) => {
+        const msg = err?.message || 'Payment failed';
+        if (!msg.includes('cancelled')) {
+          toast.error(msg);
+        }
+        setPayingId(null);
+      },
+    });
   };
 
   const getDaysLeft = (deadline) => {
@@ -207,14 +230,36 @@ export default function Competitions() {
                         </Typography>
                         <Divider sx={{ mb: 2 }} />
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography variant="body2" color="text.secondary">
-                            Fee: <strong>₹{reg.competition?.registrationFee || 0}</strong>
-                          </Typography>
-                          {reg.paymentStatus !== 'Paid' && (
-                            <Button size="small" variant="contained" color="success"
-                              onClick={() => toast.success('Payment gateway coming in Phase 4!')}>
-                              Pay Now
+                          <Box>
+                            <Typography variant="body2" color="text.secondary">
+                              Fee: <strong>₹{reg.competition?.registrationFee || 0}</strong>
+                            </Typography>
+                            <Chip
+                              size="small"
+                              label={reg.status === 'Active' ? 'Approved' : reg.status === 'Pending' ? 'Pending Approval' : reg.status}
+                              color={reg.status === 'Active' ? 'success' : reg.status === 'Pending' ? 'warning' : 'error'}
+                              sx={{ mt: 0.5 }}
+                            />
+                          </Box>
+                          {reg.paymentStatus !== 'Paid' && reg.status === 'Active' && (
+                            <Button
+                              size="small"
+                              variant="contained"
+                              color="success"
+                              startIcon={payingId === reg._id ? <CircularProgress size={14} color="inherit" /> : <Receipt />}
+                              disabled={payingId === reg._id}
+                              onClick={() => handlePayNow(reg)}
+                            >
+                              {payingId === reg._id ? 'Processing...' : 'Pay Now'}
                             </Button>
+                          )}
+                          {reg.paymentStatus === 'Paid' && (
+                            <Chip label="✓ Paid" color="success" size="small" />
+                          )}
+                          {reg.paymentStatus !== 'Paid' && reg.status === 'Pending' && (
+                            <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                              Pay after approval
+                            </Typography>
                           )}
                         </Box>
                       </CardContent>

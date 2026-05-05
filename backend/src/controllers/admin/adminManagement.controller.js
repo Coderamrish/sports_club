@@ -5,7 +5,7 @@ const AuditLog        = require('../../models/AuditLog.model');
 const Competition     = require('../../models/Competition.model');
 const CompetitionRegistration = require('../../models/CompetitionRegistration.model');
 const { AppError }    = require('../../utils/appError');
-const { sendProfileStatusEmail } = require('../../services/email.service');
+const { sendProfileStatusEmail, sendRegistrationApprovalEmail } = require('../../services/email.service');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/dashboard
@@ -154,14 +154,10 @@ exports.listAthletes = async (req, res, next) => {
       AthleteProfile.countDocuments(profileFilter),
     ]);
 
-    // Filter out orphaned profiles whose user document no longer exists.
-    // populate() silently returns null for broken refs, causing the UI to show 0 athletes.
-    const validProfiles = profiles.filter(p => p.user != null);
-
     res.status(200).json({
       success: true,
       data: {
-        athletes: validProfiles,
+        athletes: profiles,
         pagination: {
           total,
           page:       parseInt(page),
@@ -398,14 +394,30 @@ exports.updateRegistrationStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { status, paymentStatus } = req.body;
-    
-    const reg = await CompetitionRegistration.findById(id);
+
+    const reg = await CompetitionRegistration.findById(id)
+      .populate('competition', 'title date venue')
+      .populate('athlete', 'fullName email');
     if (!reg) return next(new AppError('Registration not found.', 404));
 
+    const prevStatus = reg.status;
     if (status) reg.status = status;
     if (paymentStatus) reg.paymentStatus = paymentStatus;
 
     await reg.save();
+
+    // Send approval email when admin moves status to Active
+    if (status === 'Active' && prevStatus !== 'Active' && reg.athlete?.email) {
+      sendRegistrationApprovalEmail({
+        to:               reg.athlete.email,
+        fullName:         reg.athlete.fullName,
+        competitionTitle: reg.competition?.title,
+        competitionDate:  reg.competition?.date,
+        venue:            reg.competition?.venue,
+        paymentStatus:    reg.paymentStatus,
+      }).catch(() => {}); // fire-and-forget
+    }
+
     res.status(200).json({ success: true, message: 'Registration updated successfully.', data: reg });
   } catch (err) {
     next(err);

@@ -27,6 +27,7 @@ import CoachManagement     from './pages/admin/CoachManagement';
 import AthleteDetailPage   from './pages/admin/AthleteDetailPage';
 import CoachDetailPage     from './pages/admin/CoachDetailPage';
 import AdminCompetitions   from './pages/admin/AdminCompetitions';
+import AdminPayments       from './pages/admin/AdminPayments';
 import Competitions        from './pages/shared/Competitions';
 
 export default function App() {
@@ -127,6 +128,11 @@ export default function App() {
             <Route path="/admin/competitions" element={
               <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['manage_competitions']}>
                 <AdminCompetitions />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/payments" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['manage_payments']}>
+                <AdminPayments />
               </ProtectedRoute>
             } />
 

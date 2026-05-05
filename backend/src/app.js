@@ -13,6 +13,7 @@ const athleteRoutes = require('./routes/athlete.routes');
 const coachRoutes   = require('./routes/coach.routes');
 const adminRoutes   = require('./routes/admin.routes');
 const publicRoutes  = require('./routes/public.routes');
+const paymentRoutes = require('./routes/payment.routes');
 const errorHandler  = require('./middleware/errorHandler');
 const { notFound }  = require('./middleware/notFound');
 const app = express();
@@ -57,6 +58,7 @@ app.use('/api/athletes', athleteRoutes);
 app.use('/api/coaches',  coachRoutes);
 app.use('/api/admin',    adminRoutes);
 app.use('/api/public',   publicRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Error handling
 app.use(notFound);

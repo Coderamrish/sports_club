@@ -93,4 +93,15 @@ router.patch('/competitions/registrations/:id/status',
   adminManagementController.updateRegistrationStatus
 );
 
+// ── Payment management ────────────────────────────────────────────────────────
+const paymentController = require('../controllers/payment.controller');
+router.get('/payments',
+  requirePermission('manage_payments'),
+  paymentController.adminGetAllPayments
+);
+router.get('/payments/summary',
+  requirePermission('view_analytics'),
+  paymentController.adminGetPaymentSummary
+);
+
 module.exports = router;

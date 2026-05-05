@@ -56,4 +56,6 @@ const competitionRegistrationSchema = new mongoose.Schema(
 // Prevent duplicate registrations
 competitionRegistrationSchema.index({ athlete: 1, competition: 1 }, { unique: true });
 
-module.exports = mongoose.model('CompetitionRegistration', competitionRegistrationSchema);
+module.exports =
+  mongoose.models.CompetitionRegistration ||
+  mongoose.model('CompetitionRegistration', competitionRegistrationSchema);
