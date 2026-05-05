@@ -58,4 +58,16 @@ router.patch('/coaches/:id/status',
   adminManagementController.updateCoachStatus
 );
 
+// ── Competition management ──────────────────────────────────────────────────
+const competitionController = require('../controllers/competition.controller');
+router.post('/competitions',
+  requirePermission('manage_settings'),
+  auditLog('create_competition'),
+  competitionController.createCompetition
+);
+router.get('/competitions',
+  requirePermission('view_all_profiles'),
+  competitionController.getAllCompetitions
+);
+
 module.exports = router;

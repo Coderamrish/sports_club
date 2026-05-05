@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Card, CardContent, Button, Avatar,
   Chip, Grid, LinearProgress, Alert, List, ListItem,
@@ -17,6 +17,7 @@ import {
   selectProfileLoading,
   selectProfileCompletion,
 } from '../../store/slices/profileSlice';
+import api from '../../services/api';
 
 const PROFILE_STEPS = [
   { label: 'Personal Details',      field: (p) => p?.gender && p?.dateOfBirth },
@@ -44,8 +45,16 @@ export default function AthleteDashboard() {
   const isLoading  = useSelector(selectProfileLoading);
   const completion = useSelector(selectProfileCompletion);
 
+  const [competitions, setCompetitions] = useState([]);
+  const [loadingComps, setLoadingComps] = useState(true);
+
   useEffect(() => {
     dispatch(fetchAthleteProfile());
+    
+    api.get('/public/competitions')
+      .then(res => setCompetitions(res.data.data))
+      .catch(err => console.error('Failed to fetch competitions', err))
+      .finally(() => setLoadingComps(false));
   }, [dispatch]);
 
   const handleLogout = async () => {
@@ -96,10 +105,16 @@ export default function AthleteDashboard() {
             </Typography>
           </Box>
         </Box>
-        <Button variant="outlined" size="small" startIcon={<Logout />} onClick={handleLogout}
-          sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}>
-          Logout
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button variant="outlined" size="small" onClick={() => navigate('/')}
+            sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}>
+            Home
+          </Button>
+          <Button variant="outlined" size="small" startIcon={<Logout />} onClick={handleLogout}
+            sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}>
+            Logout
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ p: 3, maxWidth: 1100, mx: 'auto' }}>
@@ -204,11 +219,30 @@ export default function AthleteDashboard() {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" fontWeight={700} mb={2}>Available Competitions</Typography>
-                    <Alert severity={completion >= 75 ? 'warning' : 'info'}>
-                      {completion >= 75
-                        ? 'Almost there! Complete your remaining profile steps to unlock competitions.'
-                        : 'Complete your profile to view and register for competitions.'}
-                    </Alert>
+                    {completion < 100 || registrationStatus !== 'Approved' ? (
+                      <Alert severity={completion >= 75 ? 'warning' : 'info'}>
+                        {completion >= 75
+                          ? 'Almost there! Complete your remaining profile steps to unlock competitions.'
+                          : 'Complete your profile to view and register for competitions.'}
+                      </Alert>
+                    ) : (
+                      loadingComps ? <CircularProgress /> : (
+                        <List>
+                          {competitions.length === 0 && <Typography>No upcoming competitions.</Typography>}
+                          {competitions.map(comp => (
+                            <ListItem key={comp._id} divider sx={{ px: 0 }}>
+                              <ListItemText 
+                                primary={comp.title} 
+                                secondary={`Date: ${new Date(comp.date).toLocaleDateString()} | Fee: ₹${comp.registrationFee}`} 
+                              />
+                              <Button variant="contained" size="small" onClick={() => navigate('/athlete/register-competition')}>
+                                Register
+                              </Button>
+                            </ListItem>
+                          ))}
+                        </List>
+                      )
+                    )}
                   </CardContent>
                 </Card>
               </Grid>

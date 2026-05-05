@@ -90,6 +90,10 @@ export default function AdminDashboard() {
               Manage Admins
             </Button>
           )}
+          <Button variant="outlined" size="small" onClick={() => navigate('/')}
+            sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)', '&:hover': { borderColor: 'white' } }}>
+            Home
+          </Button>
           <IconButton onClick={handleLogout} sx={{ color: 'white' }}><Logout /></IconButton>
         </Box>
       </Box>
@@ -139,6 +143,11 @@ export default function AdminDashboard() {
             onClick={() => navigate('/admin/coaches')}
             sx={{ bgcolor: '#2E7D32', '&:hover': { bgcolor: '#1b5e20' } }}>
             Manage Coaches
+          </Button>
+          <Button variant="contained" startIcon={<EmojiEvents />}
+            onClick={() => navigate('/admin/competitions')}
+            sx={{ bgcolor: '#F57F17', '&:hover': { bgcolor: '#e65100' } }}>
+            Manage Competitions
           </Button>
         </Box>
 

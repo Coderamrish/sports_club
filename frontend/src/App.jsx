@@ -7,6 +7,11 @@ import theme from './theme';
 import store from './store';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
+import HomePage from './pages/public/HomePage';
+import AboutPage from './pages/public/AboutPage';
+import ContactPage from './pages/public/ContactPage';
+import NoticeBoardPage from './pages/public/NoticeBoardPage';
+
 import LoginPage           from './pages/auth/LoginPage';
 import RegisterPage        from './pages/auth/RegisterPage';
 import ForgotPasswordPage  from './pages/auth/ForgotPasswordPage';
@@ -21,6 +26,7 @@ import AthleteManagement   from './pages/admin/AthleteManagement';
 import CoachManagement     from './pages/admin/CoachManagement';
 import AthleteDetailPage   from './pages/admin/AthleteDetailPage';
 import CoachDetailPage     from './pages/admin/CoachDetailPage';
+import AdminCompetitions   from './pages/admin/AdminCompetitions';
 
 export default function App() {
   return (
@@ -41,7 +47,11 @@ export default function App() {
           }}
         >
           <Routes>
-            <Route path="/" element={<Navigate to="/auth/login" replace />} />
+            {/* Public */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/notices" element={<NoticeBoardPage />} />
 
             {/* Public */}
             <Route path="/auth/login"           element={<LoginPage />} />
@@ -101,6 +111,11 @@ export default function App() {
             <Route path="/admin/coaches/:id" element={
               <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_all_profiles']}>
                 <CoachDetailPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/competitions" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['manage_settings']}>
+                <AdminCompetitions />
               </ProtectedRoute>
             } />
 
