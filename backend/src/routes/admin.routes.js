@@ -69,5 +69,13 @@ router.get('/competitions',
   requirePermission('view_all_profiles'),
   competitionController.getAllCompetitions
 );
+router.get('/competitions/:competitionId/registrations',
+  requirePermission('manage_settings'),
+  adminManagementController.getCompetitionRegistrations
+);
+router.patch('/competitions/registrations/:id/status',
+  requirePermission('manage_settings'),
+  adminManagementController.updateRegistrationStatus
+);
 
 module.exports = router;

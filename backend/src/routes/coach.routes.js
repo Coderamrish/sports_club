@@ -24,4 +24,10 @@ router.delete(
   coachProfileController.deleteDocument
 );
 
+// ── Competitions ─────────────────────────────────────────────────────────────
+const compRegController = require('../controllers/competitionRegistration.controller');
+router.get('/competitions', compRegController.getMyRegistrations);
+router.post('/competitions/register', compRegController.registerForCompetition);
+router.delete('/competitions/:registrationId', compRegController.cancelRegistration);
+
 module.exports = router;

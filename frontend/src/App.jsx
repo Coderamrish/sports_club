@@ -27,6 +27,7 @@ import CoachManagement     from './pages/admin/CoachManagement';
 import AthleteDetailPage   from './pages/admin/AthleteDetailPage';
 import CoachDetailPage     from './pages/admin/CoachDetailPage';
 import AdminCompetitions   from './pages/admin/AdminCompetitions';
+import Competitions        from './pages/shared/Competitions';
 
 export default function App() {
   return (
@@ -69,6 +70,11 @@ export default function App() {
                 <AthleteProfileSetup />
               </ProtectedRoute>
             } />
+            <Route path="/athlete/competitions" element={
+              <ProtectedRoute allowedRoles={['athlete']}>
+                <Competitions />
+              </ProtectedRoute>
+            } />
 
             {/* Coach */}
             <Route path="/coach/dashboard" element={
@@ -79,6 +85,11 @@ export default function App() {
             <Route path="/coach/profile-setup" element={
               <ProtectedRoute allowedRoles={['coach']}>
                 <CoachProfileSetup />
+              </ProtectedRoute>
+            } />
+            <Route path="/coach/competitions" element={
+              <ProtectedRoute allowedRoles={['coach']}>
+                <Competitions />
               </ProtectedRoute>
             } />
 

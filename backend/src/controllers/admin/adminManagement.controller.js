@@ -1,6 +1,9 @@
 const User            = require('../../models/User.model');
 const AthleteProfile  = require('../../models/AthleteProfile.model');
 const CoachProfile    = require('../../models/CoachProfile.model');
+const AuditLog        = require('../../models/AuditLog.model');
+const Competition     = require('../../models/Competition.model');
+const CompetitionRegistration = require('../../models/CompetitionRegistration.model');
 const { AppError }    = require('../../utils/appError');
 const { sendProfileStatusEmail } = require('../../services/email.service');
 
@@ -72,13 +75,17 @@ exports.getDashboard = async (req, res, next) => {
       'insurance.status': 'Missing',
     });
 
+    const pendingCoaches = await CoachProfile.countDocuments({ profileStatus: 'Pending Review' });
+    const pendingAthletes = await AthleteProfile.countDocuments({ registrationStatus: 'Pending Review' });
+    const totalCompetitions = await Competition.countDocuments();
+
     res.status(200).json({
       success: true,
       data: {
         totalAthletes,
         totalCoaches,
-        totalCompetitions:  0,   // placeholder — Phase 4
-        pendingPayments:    0,   // placeholder — Phase 4
+        totalCompetitions,
+        pendingApprovals: pendingCoaches + pendingAthletes,
         pendingDocuments,
         approvedToday,
         rejectedDocs,
@@ -363,6 +370,39 @@ exports.updateCoachStatus = async (req, res, next) => {
     }
 
     res.status(200).json({ success: true, message: `Coach profile ${status.toLowerCase()}.` });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Competition Registrations Management
+// ─────────────────────────────────────────────────────────────────────────────
+exports.getCompetitionRegistrations = async (req, res, next) => {
+  try {
+    const { competitionId } = req.params;
+    const registrations = await CompetitionRegistration.find({ competition: competitionId })
+      .populate('athlete', 'fullName email mobile')
+      .sort({ createdAt: -1 });
+    res.status(200).json({ success: true, data: registrations });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.updateRegistrationStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, paymentStatus } = req.body;
+    
+    const reg = await CompetitionRegistration.findById(id);
+    if (!reg) return next(new AppError('Registration not found.', 404));
+
+    if (status) reg.status = status;
+    if (paymentStatus) reg.paymentStatus = paymentStatus;
+
+    await reg.save();
+    res.status(200).json({ success: true, message: 'Registration updated successfully.', data: reg });
   } catch (err) {
     next(err);
   }

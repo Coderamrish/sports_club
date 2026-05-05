@@ -144,6 +144,10 @@ export default function CoachDashboard() {
             sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}>
             Home
           </Button>
+          <Button variant="outlined" size="small" startIcon={<EmojiEvents />} onClick={() => navigate('/coach/competitions')}
+            sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}>
+            Competitions
+          </Button>
           <Button variant="outlined" size="small" startIcon={<Logout />} onClick={handleLogout}
             sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)' }}>
             Logout
@@ -181,12 +185,12 @@ export default function CoachDashboard() {
             {/* ── Stat cards ── */}
             <Grid container spacing={2} mb={3}>
               {[
-                { icon: <People />,       label: 'Assigned Athletes', value: '0',         color: '#1565C0' },
-                { icon: <EmojiEvents />,  label: 'Competitions',      value: '0',         color: '#F57F17' },
+                { icon: <People />,       label: 'Assigned Athletes', value: '0',         color: '#1565C0', onClick: () => toast.success('Assigned athletes coming in Phase 4') },
+                { icon: <EmojiEvents />,  label: 'Competitions',      value: '0',         color: '#F57F17', onClick: () => navigate('/coach/competitions') },
                 { icon: <SportsKabaddi />,label: 'Profile Status',    value: profileStatus, color: '#2E7D32', isChip: true },
               ].map(c => (
                 <Grid item xs={12} sm={4} key={c.label}>
-                  <Card>
+                  <Card sx={{ cursor: c.onClick ? 'pointer' : 'default', transition: 'transform 0.2s', '&:hover': c.onClick ? { transform: 'scale(1.02)' } : {} }} onClick={c.onClick}>
                     <CardContent sx={{ textAlign: 'center', py: 2 }}>
                       <Avatar sx={{ bgcolor: c.color + '18', color: c.color, mx: 'auto', mb: 1 }}>
                         {c.icon}
