@@ -69,6 +69,21 @@ router.get('/competitions',
   requirePermission('view_all_profiles'),
   competitionController.getAllCompetitions
 );
+router.patch('/competitions/:id',
+  requirePermission('manage_competitions'),
+  auditLog('update_competition'),
+  competitionController.updateCompetition
+);
+router.patch('/competitions/:id/status',
+  requirePermission('manage_competitions'),
+  auditLog('update_competition_status'),
+  competitionController.updateCompetitionStatus
+);
+router.delete('/competitions/:id',
+  requirePermission('manage_competitions'),
+  auditLog('delete_competition'),
+  competitionController.deleteCompetition
+);
 router.get('/competitions/:competitionId/registrations',
   requirePermission('manage_competitions'),
   adminManagementController.getCompetitionRegistrations
