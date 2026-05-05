@@ -154,10 +154,14 @@ exports.listAthletes = async (req, res, next) => {
       AthleteProfile.countDocuments(profileFilter),
     ]);
 
+    // Filter out orphaned profiles whose user document no longer exists.
+    // populate() silently returns null for broken refs, causing the UI to show 0 athletes.
+    const validProfiles = profiles.filter(p => p.user != null);
+
     res.status(200).json({
       success: true,
       data: {
-        athletes: profiles,
+        athletes: validProfiles,
         pagination: {
           total,
           page:       parseInt(page),

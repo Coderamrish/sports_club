@@ -31,7 +31,9 @@ const protect = async (req, res, next) => {
     }
 
     // Check user still exists and is active
-    const user = await User.findById(decoded.id).select('+refreshToken');
+    // '+permissions' is needed because the field has select:false in the schema,
+    // but the /auth/me endpoint (and admin ProtectedRoute permission checks) rely on it.
+    const user = await User.findById(decoded.id).select('+refreshToken +permissions');
     if (!user || !user.isActive) {
       return next(new AppError('User no longer exists or has been deactivated.', 401));
     }

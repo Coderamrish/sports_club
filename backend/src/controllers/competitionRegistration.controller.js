@@ -12,7 +12,7 @@ exports.getMyRegistrations = async (req, res, next) => {
   try {
     const registrations = await CompetitionRegistration.find({
       athlete: req.user._id,
-      status: 'Active',
+      status: { $in: ['Pending', 'Active'] },
     })
       .populate('competition', 'title description date venue registrationFee deadline status categories ageGroups')
       .sort({ createdAt: -1 });
@@ -64,9 +64,11 @@ exports.registerForCompetition = async (req, res, next) => {
       competition: competitionId,
     });
     if (existing) {
-      if (existing.status === 'Active') return next(new AppError('You are already registered for this competition.', 409));
-      // Re-activate cancelled registration
-      existing.status = 'Active';
+      if (existing.status === 'Active' || existing.status === 'Pending') {
+        return next(new AppError('You are already registered for this competition.', 409));
+      }
+      // Re-register from Cancelled/Rejected — goes back to Pending for admin approval
+      existing.status = 'Pending';
       existing.paymentStatus = 'Pending';
       await existing.save();
       return res.status(200).json({
@@ -87,7 +89,7 @@ exports.registerForCompetition = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: 'Registered successfully! Payment pending.',
+      message: 'Registered successfully! Awaiting admin approval.',
       data: populated,
     });
   } catch (err) {

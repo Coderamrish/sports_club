@@ -42,8 +42,12 @@ const competitionRegistrationSchema = new mongoose.Schema(
     adminNotes: { type: String },
     status: {
       type: String,
-      enum: ['Active', 'Cancelled', 'Rejected'],
-      default: 'Active',
+      // 'Pending'  → newly registered, awaiting admin approval
+      // 'Active'   → approved by admin, athlete is confirmed
+      // 'Rejected' → rejected by admin
+      // 'Cancelled'→ cancelled by the athlete
+      enum: ['Pending', 'Active', 'Cancelled', 'Rejected'],
+      default: 'Pending',
     },
   },
   { timestamps: true }

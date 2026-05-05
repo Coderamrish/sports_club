@@ -449,6 +449,7 @@ export default function AdminCompetitions() {
                 <TableRow sx={{ bgcolor: 'grey.50' }}>
                   <TableCell sx={{ fontWeight: 700 }}>Athlete</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Payment</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Amount</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Registered</TableCell>
@@ -470,6 +471,18 @@ export default function AdminCompetitions() {
                     </TableCell>
                     <TableCell>
                       <Chip
+                        label={reg.status || 'Pending'}
+                        color={
+                          reg.status === 'Active' ? 'success' :
+                          reg.status === 'Rejected' ? 'error' :
+                          reg.status === 'Pending' ? 'warning' : 'default'
+                        }
+                        size="small"
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip
                         label={reg.paymentStatus || 'Pending'}
                         color={reg.paymentStatus === 'Paid' ? 'success' : reg.paymentStatus === 'Failed' ? 'error' : 'warning'}
                         size="small"
@@ -485,17 +498,19 @@ export default function AdminCompetitions() {
                     </TableCell>
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        {/* Accept: show for Pending and Rejected (not already Active) */}
+                        {reg.status !== 'Active' && (
+                          <Tooltip title={reg.status === 'Rejected' ? 'Re-activate' : 'Accept Registration'}>
+                            <IconButton size="small" color="success" onClick={() => handleRegStatus(reg._id, 'Active')}>
+                              <CheckCircle fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        {/* Reject: show for Pending and Active (not already Rejected) */}
                         {reg.status !== 'Rejected' && (
                           <Tooltip title="Reject Registration">
                             <IconButton size="small" color="error" onClick={() => handleRegStatus(reg._id, 'Rejected')}>
                               <Cancel fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {reg.status === 'Rejected' && (
-                          <Tooltip title="Re-activate">
-                            <IconButton size="small" color="success" onClick={() => handleRegStatus(reg._id, 'Active')}>
-                              <CheckCircle fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         )}
