@@ -9,6 +9,8 @@ const User = require('../models/User.model');
 const { AppError } = require('../utils/appError');
 const emailService = require('../services/email.service');
 const logger = require('../utils/logger');
+const generateReceipt = require('../utils/generateReceipt');
+const fs = require('fs');
 
 // ─── Razorpay instance (lazy, so missing keys in dev don't crash import) ───────
 let razorpayInstance = null;
@@ -430,6 +432,54 @@ exports.adminGetPaymentSummary = async (req, res, next) => {
         failedCount:   totalFailed,
         recentPayments,
       },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// GET /api/payments/receipt/:paymentId
+// Generate and download a PDF receipt for a paid payment
+// ═══════════════════════════════════════════════════════════════════════════════
+exports.downloadReceipt = async (req, res, next) => {
+  try {
+    const payment = await Payment.findOne({
+      _id: req.params.paymentId,
+      user: req.user._id,
+      status: 'paid',
+    });
+
+    if (!payment) {
+      return next(new AppError('Paid payment not found.', 404));
+    }
+
+    // Enrich description
+    let entityName = payment.description || 'Payment';
+    if (payment.entityType === 'competition_registration') {
+      const reg = await CompetitionRegistration.findById(payment.entityId)
+        .populate('competition', 'title');
+      entityName = `Competition Fee – ${reg?.competition?.title || 'Competition'}`;
+    } else {
+      entityName = `Profile Registration Fee – ${req.user.fullName}`;
+    }
+
+    const { filePath, fileName } = await generateReceipt({
+      receiptNo: `REC-${payment._id.toString().slice(-8).toUpperCase()}`,
+      userName: req.user.fullName,
+      userEmail: req.user.email,
+      description: entityName,
+      amount: payment.amount,
+      txnId: payment.razorpayPaymentId,
+      orderId: payment.razorpayOrderId,
+      paidAt: payment.paidAt,
+      entityType: payment.entityType,
+    });
+
+    res.download(filePath, `Receipt_${fileName}`, (err) => {
+      if (err) logger.error(`Receipt download error: ${err.message}`);
+      // Clean up generated file after download
+      fs.unlink(filePath, () => {});
     });
   } catch (err) {
     next(err);

@@ -28,4 +28,7 @@ router.post('/verify',       restrictTo('athlete', 'coach'), paymentController.v
 // My payment history
 router.get('/my-payments',   restrictTo('athlete', 'coach'), paymentController.getMyPayments);
 
+// Download PDF receipt for a paid payment
+router.get('/receipt/:paymentId', restrictTo('athlete', 'coach'), paymentController.downloadReceipt);
+
 module.exports = router;

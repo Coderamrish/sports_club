@@ -2,6 +2,7 @@ require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./config/database');
 const logger = require('./utils/logger');
+const { startScheduler } = require('./services/scheduler.service');
 
 const PORT = process.env.PORT || 5000;
 
@@ -9,6 +10,8 @@ const PORT = process.env.PORT || 5000;
 connectDB().then(() => {
   app.listen(PORT, () => {
     logger.info(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    // Start scheduled reminders (event/fee/doc alerts)
+    startScheduler();
   });
 }).catch((err) => {
   logger.error('Failed to connect to MongoDB:', err);

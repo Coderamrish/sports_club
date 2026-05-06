@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import {
   EmojiEvents, Payments, History, Download, CalendarToday,
-  LocationOn, ArrowBack, Refresh,
+  LocationOn, ArrowBack, Refresh, Receipt,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -58,6 +58,20 @@ export default function MyHistoryPage() {
       URL.revokeObjectURL(url);
     } catch {
       toast.error('Failed to download certificate');
+    }
+  };
+
+  const handleReceiptDownload = async (payId) => {
+    try {
+      const res = await api.get(`/payments/receipt/${payId}`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Receipt_${payId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Failed to download receipt');
     }
   };
 
@@ -238,7 +252,7 @@ export default function MyHistoryPage() {
                       <Table size="small">
                         <TableHead>
                           <TableRow sx={{ bgcolor: 'grey.50' }}>
-                            {['Description', 'Type', 'Amount', 'Status', 'Transaction ID', 'Date'].map(h => (
+                            {['Description', 'Type', 'Amount', 'Status', 'Transaction ID', 'Date', 'Receipt'].map(h => (
                               <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.73rem', textTransform: 'uppercase', color: 'text.secondary' }}>{h}</TableCell>
                             ))}
                           </TableRow>
@@ -268,6 +282,17 @@ export default function MyHistoryPage() {
                                 <Typography variant="caption" color="text.secondary">
                                   {new Date(pay.createdAt).toLocaleDateString('en-IN')}
                                 </Typography>
+                              </TableCell>
+                              <TableCell>
+                                {pay.status === 'paid' ? (
+                                  <Tooltip title="Download Receipt">
+                                    <IconButton size="small" color="primary" onClick={() => handleReceiptDownload(pay._id)}>
+                                      <Receipt fontSize="small" />
+                                    </IconButton>
+                                  </Tooltip>
+                                ) : (
+                                  <Typography variant="caption" color="text.disabled">—</Typography>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}

@@ -477,7 +477,7 @@ const INDIAN_STATES = [
 ];
 
 function Step3Address({ profile, onSave, isSaving, onBack }) {
-  const { register, handleSubmit, control, formState: { errors } } = useForm({
+  const { register, handleSubmit, control, setValue, watch, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[3]),
     defaultValues: {
       street: profile?.address?.street || '',
@@ -488,6 +488,43 @@ function Step3Address({ profile, onSave, isSaving, onBack }) {
       pinCode: profile?.address?.pinCode || '',
     },
   });
+
+  const [pinLoading, setPinLoading] = useState(false);
+  const [pinMsg, setPinMsg] = useState('');
+  const pinCode = watch('pinCode');
+
+  // Auto-detect state/city/district from PIN code
+  useEffect(() => {
+    if (!pinCode || pinCode.length !== 6 || !/^\d{6}$/.test(pinCode)) {
+      setPinMsg('');
+      return;
+    }
+    let cancelled = false;
+    const lookup = async () => {
+      setPinLoading(true);
+      setPinMsg('');
+      try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pinCode}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.[0]?.Status === 'Success' && data[0].PostOffice?.length > 0) {
+          const po = data[0].PostOffice[0];
+          setValue('state', po.State, { shouldValidate: true });
+          setValue('district', po.District, { shouldValidate: true });
+          setValue('city', po.Block && po.Block !== 'NA' ? po.Block : po.Division || po.District, { shouldValidate: true });
+          setPinMsg(`✅ Auto-filled: ${po.District}, ${po.State}`);
+        } else {
+          setPinMsg('⚠️ PIN code not found — please fill manually');
+        }
+      } catch {
+        if (!cancelled) setPinMsg('⚠️ Could not look up PIN — please fill manually');
+      } finally {
+        if (!cancelled) setPinLoading(false);
+      }
+    };
+    lookup();
+    return () => { cancelled = true; };
+  }, [pinCode, setValue]);
 
   return (
     <StepCard onBack={onBack} onNext={handleSubmit(onSave)} isSaving={isSaving}>
@@ -501,12 +538,30 @@ function Step3Address({ profile, onSave, isSaving, onBack }) {
             error={!!errors.landmark} helperText={errors.landmark?.message} />
         </Grid>
         <Grid item xs={12} sm={6}>
+          <TextField {...register('pinCode')} label="PIN Code" fullWidth
+            inputProps={{ maxLength: 6 }}
+            error={!!errors.pinCode} helperText={errors.pinCode?.message}
+            InputProps={{
+              endAdornment: pinLoading ? (
+                <InputAdornment position="end"><CircularProgress size={18} /></InputAdornment>
+              ) : null,
+            }}
+          />
+          {pinMsg && (
+            <Typography variant="caption" color={pinMsg.startsWith('✅') ? 'success.main' : 'warning.main'} sx={{ mt: 0.5, display: 'block' }}>
+              {pinMsg}
+            </Typography>
+          )}
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <TextField {...register('city')} label="City / Town" fullWidth
-            error={!!errors.city} helperText={errors.city?.message} />
+            error={!!errors.city} helperText={errors.city?.message}
+            InputLabelProps={{ shrink: !!watch('city') }} />
         </Grid>
         <Grid item xs={12} sm={6}>
           <TextField {...register('district')} label="District" fullWidth
-            error={!!errors.district} helperText={errors.district?.message} />
+            error={!!errors.district} helperText={errors.district?.message}
+            InputLabelProps={{ shrink: !!watch('district') }} />
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth error={!!errors.state}>
@@ -519,12 +574,10 @@ function Step3Address({ profile, onSave, isSaving, onBack }) {
             {errors.state && <FormHelperText>{errors.state.message}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField {...register('pinCode')} label="PIN Code" fullWidth
-            inputProps={{ maxLength: 6 }}
-            error={!!errors.pinCode} helperText={errors.pinCode?.message} />
-        </Grid>
       </Grid>
+      <Alert severity="info" sx={{ mt: 2 }} icon={false}>
+        💡 <strong>Tip:</strong> Enter your 6-digit PIN code first — State, District, and City will be auto-filled!
+      </Alert>
     </StepCard>
   );
 }
@@ -571,30 +624,79 @@ function Step4Club({ profile, onSave, isSaving, onBack }) {
 }
 
 // ─── Step 5: Competition Details ──────────────────────────────────────────────
+const AGE_GROUPS = ['U-10','U-12','U-14','U-16','U-18','U-21','Senior','Masters'];
+
+function getAgeFromDOB(dob) {
+  if (!dob) return null;
+  const birth = new Date(dob);
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+function suggestAgeGroup(age) {
+  if (age === null) return '';
+  if (age < 10) return 'U-10';
+  if (age < 12) return 'U-12';
+  if (age < 14) return 'U-14';
+  if (age < 16) return 'U-16';
+  if (age < 18) return 'U-18';
+  if (age < 21) return 'U-21';
+  if (age < 40) return 'Senior';
+  return 'Masters';
+}
+
 function Step5Competition({ profile, onSave, isSaving, onBack }) {
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const age = getAgeFromDOB(profile?.dateOfBirth);
+  const suggested = suggestAgeGroup(age);
+
+  const { control, handleSubmit, setValue, watch, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[5]),
     defaultValues: {
-      ageGroup: profile?.ageGroup || '',
+      ageGroup: profile?.ageGroup || suggested || '',
       skillLevel: profile?.skillLevel || '',
     },
   });
 
+  const currentGroup = watch('ageGroup');
+
+  // Auto-set on first mount if empty
+  useEffect(() => {
+    if (!currentGroup && suggested) {
+      setValue('ageGroup', suggested, { shouldValidate: true });
+    }
+  }, [suggested, currentGroup, setValue]);
+
   return (
     <StepCard onBack={onBack} onNext={handleSubmit(onSave)} isSaving={isSaving}>
+      {age !== null && (
+        <Alert severity="info" sx={{ mb: 2.5 }} icon={false}>
+          📅 Your age: <strong>{age} years</strong>
+          {suggested && <> — Suggested group: <Chip label={suggested} size="small" color="primary" sx={{ ml: 1, fontWeight: 700 }} /></>}
+        </Alert>
+      )}
       <Grid container spacing={2.5}>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth error={!!errors.ageGroup}>
             <InputLabel>Age Group</InputLabel>
             <Controller name="ageGroup" control={control} render={({ field }) => (
               <Select {...field} label="Age Group">
-                {['U-10','U-12','U-14','U-16','U-18','U-21','Senior','Masters'].map(a => (
-                  <MenuItem key={a} value={a}>{a}</MenuItem>
+                {AGE_GROUPS.map(a => (
+                  <MenuItem key={a} value={a}>
+                    {a} {a === suggested ? '← Recommended' : ''}
+                  </MenuItem>
                 ))}
               </Select>
             )} />
             {errors.ageGroup && <FormHelperText>{errors.ageGroup.message}</FormHelperText>}
           </FormControl>
+          {currentGroup && currentGroup !== suggested && suggested && (
+            <Typography variant="caption" color="warning.main" sx={{ mt: 0.5, display: 'block' }}>
+              ⚠️ Based on your DOB, the recommended group is {suggested}
+            </Typography>
+          )}
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth error={!!errors.skillLevel}>
