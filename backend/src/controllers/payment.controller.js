@@ -35,9 +35,14 @@ const makeReceipt = (prefix, id) => `${prefix}_${String(id).slice(-16)}_${Date.n
 // ═══════════════════════════════════════════════════════════════════════════════
 exports.createOrder = async (req, res, next) => {
   try {
-    const { entityType, entityId } = req.body;
-    if (!entityType || !entityId) {
-      return next(new AppError('entityType and entityId are required.', 400));
+    const { entityType } = req.body;
+    let { entityId } = req.body;
+    if (!entityType) {
+      return next(new AppError('entityType is required. For profile fee, entityId is optional.', 400));
+    }
+
+    if (entityType === 'competition_registration' && !entityId) {
+      return next(new AppError('entityId is required for competition_registration.', 400));
     }
 
     let amount, description, entity;
@@ -63,12 +68,14 @@ exports.createOrder = async (req, res, next) => {
       } else if (req.user.role === 'coach') {
         entity = await CoachProfile.findOne({ user: req.user._id });
       }
-      if (!entity) return next(new AppError('Profile not found.', 404));
+      if (!entity) return next(new AppError('Profile not found. Please create your profile first.', 404));
       if (entity.profileFeeStatus === 'Paid') {
-        return next(new AppError('Profile registration fee already paid.', 400));
+        return next(new AppError('Profile registration fee has already been paid.', 400));
       }
+      // Use profile _id as entityId so verifyPayment can look it up directly
+      entityId = String(entity._id);
       amount      = Number(process.env.PROFILE_REGISTRATION_FEE) || 500;
-      description = `Profile registration fee – ${req.user.fullName}`;
+      description = `Profile registration fee – ${req.user.fullName} (${req.user.role})`;
 
     } else {
       return next(new AppError('Invalid entityType.', 400));
@@ -187,17 +194,23 @@ exports.verifyPayment = async (req, res, next) => {
       };
 
     } else if (payment.entityType === 'profile_registration') {
-      // Mark profile fee as paid
+      // Mark profile fee as paid — store txnId and amount for admin display
+      const feeUpdate = {
+        profileFeeStatus: 'Paid',
+        profileFeePaidAt: new Date(),
+        profileFeeAmount: payment.amount,
+        profileFeeTxnId:  razorpayPaymentId,
+      };
       if (user?.role === 'athlete') {
         entityDoc = await AthleteProfile.findByIdAndUpdate(
           payment.entityId,
-          { profileFeeStatus: 'Paid', profileFeePaidAt: new Date() },
+          feeUpdate,
           { new: true }
         );
       } else {
         entityDoc = await CoachProfile.findByIdAndUpdate(
           payment.entityId,
-          { profileFeeStatus: 'Paid', profileFeePaidAt: new Date() },
+          feeUpdate,
           { new: true }
         );
       }
@@ -378,7 +391,9 @@ exports.adminGetAllPayments = async (req, res, next) => {
             .populate('competition', 'title');
           doc.entityName = reg?.competition?.title || '—';
         } else {
-          doc.entityName = 'Profile Registration';
+          // Show role-specific label for profile fees
+          const roleLabel = p.user?.role === 'coach' ? 'Coach' : 'Athlete';
+          doc.entityName = `${roleLabel} Profile Fee`;
         }
         return doc;
       })

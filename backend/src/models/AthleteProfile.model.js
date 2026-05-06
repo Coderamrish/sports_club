@@ -160,6 +160,18 @@ const athleteProfileSchema = new mongoose.Schema(
 
     // ─── Form Step Progress ───────────────────────────────────────
     formStep: { type: Number, default: 1, min: 1, max: 8 },
+
+    // ─── Profile Registration Fee ─────────────────────────────────
+    // Tracks payment of the one-time profile registration fee.
+    profileFeeStatus: {
+      type: String,
+      enum: ['Unpaid', 'Paid'],
+      default: 'Unpaid',
+      index: true,
+    },
+    profileFeePaidAt:   { type: Date, default: null },
+    profileFeeAmount:   { type: Number, default: null },   // actual amount paid
+    profileFeeTxnId:    { type: String, default: null },   // Razorpay payment ID
   },
   {
     timestamps: true,
