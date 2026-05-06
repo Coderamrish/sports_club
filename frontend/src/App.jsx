@@ -20,7 +20,9 @@ import AthleteDashboard    from './pages/athlete/AthleteDashboard';
 import AthleteProfileSetup from './pages/athlete/AthleteProfileSetup';
 import CoachDashboard      from './pages/coach/CoachDashboard';
 import CoachProfileSetup   from './pages/coach/CoachProfileSetup';
+// Admin Dashboard - Routes at /admin/dashboard with ProtectedRoute wrapper for 'admin' role
 import AdminDashboard      from './pages/admin/AdminDashboard';
+import AdminAnalytics      from './pages/admin/AdminAnalytics';
 import AdminManagement     from './pages/admin/AdminManagement';
 import AthleteManagement   from './pages/admin/AthleteManagement';
 import CoachManagement     from './pages/admin/CoachManagement';
@@ -95,9 +97,16 @@ export default function App() {
             } />
 
             {/* Admin */}
+            {/* Link to AdminDashboard at /admin/dashboard - requires admin role and view_analytics permission */}
             <Route path="/admin/dashboard" element={
               <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_analytics']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+            {/* Link to AdminAnalytics at /admin/analytics - detailed reports and metrics */}
+            <Route path="/admin/analytics" element={
+              <ProtectedRoute allowedRoles={['admin']} requiredPermissions={['view_analytics']}>
+                <AdminAnalytics />
               </ProtectedRoute>
             } />
             <Route path="/admin/admins" element={

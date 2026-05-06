@@ -104,4 +104,19 @@ router.get('/payments/summary',
   paymentController.adminGetPaymentSummary
 );
 
+// ── Analytics & Export ────────────────────────────────────────────────────────
+const analyticsController = require('../controllers/admin/adminAnalytics.controller');
+router.get('/analytics/overview',
+  requirePermission('view_analytics'),
+  analyticsController.getAnalyticsOverview
+);
+router.get('/analytics/export',
+  requirePermission('view_analytics'),
+  analyticsController.exportAnalyticsCSV
+);
+router.patch('/analytics/registrations/:id/result',
+  requirePermission('manage_competitions'),
+  analyticsController.updateRegistrationResult
+);
+
 module.exports = router;

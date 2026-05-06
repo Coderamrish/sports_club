@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box, Grid, Card, CardContent, Typography, Avatar, Chip,
+  Box, Grid, Card, CardContent, Typography, Avatar, Chip, Link as MuiLink,
   List, ListItem, ListItemAvatar, ListItemText, Divider,
-  Button, IconButton, Alert, CircularProgress, LinearProgress,
+  Button, IconButton, Alert, CircularProgress, LinearProgress, Breadcrumbs,
   Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Badge,
 } from '@mui/material';
@@ -10,10 +10,10 @@ import {
   People, DirectionsRun, SportsKabaddi, EmojiEvents,
   Payments, TrendingUp, Warning, CheckCircle, Schedule,
   AdminPanelSettings, Logout, Shield, ManageAccounts,
-  Dashboard, NotificationsActive,
+  Dashboard, NotificationsActive, Home as HomeIcon,
 } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { logoutUser, selectCurrentUser, selectAdminLevel, selectAdminPermissions } from '../../store/slices/authSlice';
 import api from '../../services/api';
 
@@ -98,6 +98,22 @@ export default function AdminDashboard() {
         </Box>
       </Box>
 
+      {/* Breadcrumb Navigation */}
+      <Box sx={{ bgcolor: 'rgba(0,0,0,0.03)', px: 3, py: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            <MuiLink component="span" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}>
+              <HomeIcon sx={{ fontSize: 18 }} />
+              Home
+            </MuiLink>
+          </Link>
+          <Typography color="textPrimary" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <AdminPanelSettings sx={{ fontSize: 18 }} />
+            Admin Dashboard
+          </Typography>
+        </Breadcrumbs>
+      </Box>
+
       <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
         {/* Permission banner for moderators */}
         {adminLevel === 'moderator' && (
@@ -134,6 +150,11 @@ export default function AdminDashboard() {
 
         {/* Quick navigation buttons */}
         <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <Button variant="contained" startIcon={<TrendingUp />}
+            onClick={() => navigate('/admin/analytics')}
+            sx={{ bgcolor: '#0D47A1', '&:hover': { bgcolor: '#0D3080' } }}>
+            Analytics & Reports
+          </Button>
           <Button variant="contained" startIcon={<People />}
             onClick={() => navigate('/admin/athletes')}
             sx={{ bgcolor: '#1565C0', '&:hover': { bgcolor: '#0d47a1' } }}>
