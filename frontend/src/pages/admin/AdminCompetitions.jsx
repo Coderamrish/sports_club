@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import {
   Add, Refresh, Visibility, Edit, Delete, CheckCircle, Cancel,
-  HourglassEmpty, People, ArrowBack
+  HourglassEmpty, People, ArrowBack, EmojiEvents, Email, Download
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
@@ -36,6 +36,13 @@ export default function AdminCompetitions() {
   const [editTarget, setEditTarget] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [adminNote, setAdminNote] = useState('');
+
+  // Certificate management state
+  const [certDialog, setCertDialog] = useState(null);
+  const [certRegs, setCertRegs] = useState([]);
+  const [certLoading, setCertLoading] = useState(false);
+  const [certResults, setCertResults] = useState({});
+  const [certSaving, setCertSaving] = useState(false);
 
   const fetchCompetitions = async () => {
     setLoading(true);
@@ -183,6 +190,57 @@ export default function AdminCompetitions() {
     }
   };
 
+  // ── Certificate Management ─────────────────────────────────────────────────
+  const openCertificates = async (comp) => {
+    setCertDialog(comp);
+    setCertLoading(true);
+    setCertRegs([]);
+    setCertResults({});
+    try {
+      const { data } = await api.get(`/certificates/admin/competition/${comp._id}/registrations`);
+      const regs = data.data || [];
+      setCertRegs(regs);
+      const initial = {};
+      regs.forEach(r => {
+        initial[r._id] = {
+          medal: r.medalWon || 'Participant',
+          attendance: r.attendanceStatus || 'Present',
+        };
+      });
+      setCertResults(initial);
+    } catch {
+      toast.error('Failed to load registrations');
+    } finally {
+      setCertLoading(false);
+    }
+  };
+
+  const handleCertChange = (regId, field, value) => {
+    setCertResults(prev => ({ ...prev, [regId]: { ...prev[regId], [field]: value } }));
+  };
+
+  const handleGenerateCertificates = async () => {
+    if (!certDialog) return;
+    setCertSaving(true);
+    try {
+      const payload = certRegs.map(r => ({
+        registrationId: r._id,
+        medal: certResults[r._id]?.medal || 'Participant',
+        attendanceStatus: certResults[r._id]?.attendance || 'Present',
+      }));
+      const { data } = await api.post('/certificates/admin/results', {
+        competitionId: certDialog._id,
+        results: payload,
+      });
+      toast.success(`${data.generated} certificates generated! ${data.failed} failed.`);
+      openCertificates(certDialog); // refresh
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Certificate generation failed');
+    } finally {
+      setCertSaving(false);
+    }
+  };
+
   // ── Form helper ─────────────────────────────────────────────────────────────
   const ff = (key) => ({
     value: formData[key],
@@ -307,6 +365,11 @@ export default function AdminCompetitions() {
                     <Tooltip title="View Registrations">
                       <IconButton size="small" color="primary" onClick={() => openRegistrations(comp)}>
                         <People fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Manage Certificates & Medals">
+                      <IconButton size="small" color="secondary" onClick={() => openCertificates(comp)}>
+                        <EmojiEvents fontSize="small" />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="Edit">
@@ -524,6 +587,92 @@ export default function AdminCompetitions() {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => { setRegsDialog(null); setRegistrations([]); }}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Certificate Management Dialog ──────────────────────────────────── */}
+      <Dialog open={!!certDialog} onClose={() => setCertDialog(null)} maxWidth="lg" fullWidth>
+        <DialogTitle fontWeight={700}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box>
+              <Typography fontWeight={700}>🏅 Manage Certificates & Medals</Typography>
+              <Typography variant="caption" color="text.secondary">{certDialog?.title}</Typography>
+            </Box>
+            <Button variant="contained" color="secondary" startIcon={<EmojiEvents />}
+              onClick={handleGenerateCertificates} disabled={certSaving || certRegs.length === 0}>
+              {certSaving ? <CircularProgress size={18} color="inherit" /> : 'Generate & Email All'}
+            </Button>
+          </Box>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ p: 0 }}>
+          {certLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
+          ) : certRegs.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 6, color: 'text.secondary' }}>
+              <Typography variant="h4" mb={1}>📋</Typography>
+              <Typography>No registrations found for this competition.</Typography>
+            </Box>
+          ) : (
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'grey.50' }}>
+                  <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Payment</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Attendance</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Medal</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Certificate</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {certRegs.map(reg => (
+                  <TableRow key={reg._id} hover>
+                    <TableCell>
+                      <Typography variant="body2" fontWeight={600}>{reg.athlete?.fullName || '—'}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption" color="text.secondary">{reg.athlete?.email || '—'}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={reg.paymentStatus || 'Pending'} size="small"
+                        color={reg.paymentStatus === 'Paid' ? 'success' : 'warning'} />
+                    </TableCell>
+                    <TableCell>
+                      <FormControl size="small" sx={{ minWidth: 100 }}>
+                        <Select value={certResults[reg._id]?.attendance || 'Present'}
+                          onChange={e => handleCertChange(reg._id, 'attendance', e.target.value)}>
+                          <MenuItem value="Present">Present</MenuItem>
+                          <MenuItem value="Absent">Absent</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <Select value={certResults[reg._id]?.medal || 'Participant'}
+                          onChange={e => handleCertChange(reg._id, 'medal', e.target.value)}>
+                          <MenuItem value="Gold">🥇 Gold</MenuItem>
+                          <MenuItem value="Silver">🥈 Silver</MenuItem>
+                          <MenuItem value="Bronze">🥉 Bronze</MenuItem>
+                          <MenuItem value="Participant">Participant</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      {reg.certificateUrl ? (
+                        <Chip label="✓ Issued" color="success" size="small" variant="outlined" />
+                      ) : (
+                        <Chip label="Pending" color="default" size="small" variant="outlined" />
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setCertDialog(null)}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>

@@ -121,6 +121,7 @@ export default function AthleteDashboard() {
         <Box sx={{ display:'flex', gap:1 }}>
           <Button variant="outlined" size="small" onClick={() => navigate('/')} sx={{ color:'white', borderColor:'rgba(255,255,255,0.5)' }}>Home</Button>
           <Button variant="outlined" size="small" onClick={() => navigate('/athlete/competitions')} sx={{ color:'white', borderColor:'rgba(255,255,255,0.5)' }}>Competitions</Button>
+          <Button variant="outlined" size="small" onClick={() => navigate('/athlete/history')} sx={{ color:'white', borderColor:'rgba(255,255,255,0.5)' }}>My History</Button>
           <Button variant="outlined" size="small" startIcon={<Logout />} onClick={handleLogout} sx={{ color:'white', borderColor:'rgba(255,255,255,0.5)' }}>Logout</Button>
         </Box>
       </Box>

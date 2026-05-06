@@ -31,6 +31,7 @@ import CoachDetailPage     from './pages/admin/CoachDetailPage';
 import AdminCompetitions   from './pages/admin/AdminCompetitions';
 import AdminPayments       from './pages/admin/AdminPayments';
 import Competitions        from './pages/shared/Competitions';
+import MyHistoryPage       from './pages/MyHistory';
 
 export default function App() {
   return (
@@ -78,6 +79,11 @@ export default function App() {
                 <Competitions />
               </ProtectedRoute>
             } />
+            <Route path="/athlete/history" element={
+              <ProtectedRoute allowedRoles={['athlete']}>
+                <MyHistoryPage />
+              </ProtectedRoute>
+            } />
 
             {/* Coach */}
             <Route path="/coach/dashboard" element={
@@ -93,6 +99,11 @@ export default function App() {
             <Route path="/coach/competitions" element={
               <ProtectedRoute allowedRoles={['coach']}>
                 <Competitions />
+              </ProtectedRoute>
+            } />
+            <Route path="/coach/history" element={
+              <ProtectedRoute allowedRoles={['coach']}>
+                <MyHistoryPage />
               </ProtectedRoute>
             } />
 

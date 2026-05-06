@@ -53,12 +53,13 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
-app.use('/api/auth',     authRoutes);
-app.use('/api/athletes', athleteRoutes);
-app.use('/api/coaches',  coachRoutes);
-app.use('/api/admin',    adminRoutes);
-app.use('/api/public',   publicRoutes);
-app.use('/api/payments', paymentRoutes);
+app.use('/api/auth',         authRoutes);
+app.use('/api/athletes',     athleteRoutes);
+app.use('/api/coaches',      coachRoutes);
+app.use('/api/admin',        adminRoutes);
+app.use('/api/public',       publicRoutes);
+app.use('/api/payments',     paymentRoutes);
+app.use('/api/certificates', require('./routes/certificates'));
 
 // Error handling
 app.use(notFound);
