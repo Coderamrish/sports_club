@@ -60,18 +60,17 @@ const coachProfileSchema = new mongoose.Schema(
       default: 'Incomplete',
       index: true,
     },
+    // max 6: steps 1-5 + payment complete = 6
     formStep: { type: Number, default: 1 },
 
-    // ─── Profile Registration Fee ─────────────────────────────────
+    // ─── Profile Fee (one-time registration fee) ───────────────────
     profileFeeStatus: {
       type: String,
-      enum: ['Unpaid', 'Paid'],
-      default: 'Unpaid',
-      index: true,
+      enum: ['Pending', 'Paid', 'Failed'],
+      default: 'Pending',
     },
-    profileFeePaidAt:  { type: Date,   default: null },
-    profileFeeAmount:  { type: Number, default: null },
-    profileFeeTxnId:   { type: String, default: null },
+    profileFeePaidAt:        { type: Date, default: null },
+    profileFeeTransactionId: { type: String, default: null },
 
     // ─── Assigned Athletes (future feature) ───────────────────────
     assignedAthletes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],

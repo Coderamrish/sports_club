@@ -142,8 +142,16 @@ const athleteProfileSchema = new mongoose.Schema(
       type: String,
       enum: ['Incomplete', 'Pending Review', 'Approved', 'Rejected'],
       default: 'Incomplete',
-      // index defined below via schema.index() — no inline index: true to avoid duplicate
     },
+
+    // ─── Profile Fee (one-time registration fee) ───────────────────
+    profileFeeStatus: {
+      type: String,
+      enum: ['Pending', 'Paid', 'Failed'],
+      default: 'Pending',
+    },
+    profileFeePaidAt:        { type: Date, default: null },
+    profileFeeTransactionId: { type: String, default: null },
 
     // ─── Linked Competitions ──────────────────────────────────────
     competitions: [
@@ -159,19 +167,8 @@ const athleteProfileSchema = new mongoose.Schema(
     verifiedAt: Date,
 
     // ─── Form Step Progress ───────────────────────────────────────
-    formStep: { type: Number, default: 1, min: 1, max: 8 },
-
-    // ─── Profile Registration Fee ─────────────────────────────────
-    // Tracks payment of the one-time profile registration fee.
-    profileFeeStatus: {
-      type: String,
-      enum: ['Unpaid', 'Paid'],
-      default: 'Unpaid',
-      index: true,
-    },
-    profileFeePaidAt:   { type: Date, default: null },
-    profileFeeAmount:   { type: Number, default: null },   // actual amount paid
-    profileFeeTxnId:    { type: String, default: null },   // Razorpay payment ID
+    // max 9: steps 1-8 + payment complete = 9
+    formStep: { type: Number, default: 1, min: 1, max: 9 },
   },
   {
     timestamps: true,

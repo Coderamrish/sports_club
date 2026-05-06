@@ -118,8 +118,11 @@ export const selectCoachSaving    = (s) => s.coachProfile.isSaving;
 export const selectCoachUploading = (s) => s.coachProfile.isUploading;
 export const selectCoachError     = (s) => s.coachProfile.error;
 export const selectCoachCompletion = (s) => {
-  const step = s.coachProfile.coachProfile?.formStep ?? 1;
-  return Math.round(((step - 1) / 5) * 100);
+  const profile = s.coachProfile.coachProfile;
+  if (!profile) return 0;
+  if (profile.profileFeeStatus === 'Paid') return 100;
+  const step = profile.formStep ?? 1;
+  return Math.min(Math.round(((step - 1) / 5) * 100), 80);
 };
 
 export default coachProfileSlice.reducer;

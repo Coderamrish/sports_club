@@ -130,8 +130,14 @@ export const selectProfileError       = (s) => s.profile.error;
 export const selectUploadError        = (s) => s.profile.uploadError;
 
 export const selectProfileCompletion = (s) => {
-  const step = s.profile.athleteProfile?.formStep ?? 1;
-  return Math.round(((step - 1) / 8) * 100);
+  const profile = s.profile.athleteProfile;
+  if (!profile) return 0;
+  // 9 total milestones: steps 1-8 + profile fee paid
+  const step = profile.formStep ?? 1;
+  // If payment done (formStep=9) → 100%
+  // Otherwise base on formStep (max natural is 8 → 88%)
+  if (profile.profileFeeStatus === 'Paid') return 100;
+  return Math.min(Math.round(((step - 1) / 8) * 100), 88);
 };
 
 export default profileSlice.reducer;
