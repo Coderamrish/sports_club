@@ -24,8 +24,26 @@ app.use(mongoSanitize());
 app.use(hpp());
 
 //  CORS
+const whitelist = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000',
+  'http://localhost:5173', // For Vite users
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const isWhitelisted = whitelist.some(url => url && url.startsWith(origin));
+    const isNetlifyPreview = origin.endsWith('.netlify.app');
+
+    if (isWhitelisted || isNetlifyPreview) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
