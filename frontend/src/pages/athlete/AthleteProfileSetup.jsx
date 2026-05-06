@@ -768,11 +768,16 @@ function Step6Documents({ profile, onSave, isSaving, isUploading, onUpload, onDe
 }
 
 // ─── Step 7: Declaration ──────────────────────────────────────────────────────
-function Step7Declaration({ onSave, isSaving, onBack }) {
+function Step7Declaration({ profile, onSave, isSaving, onBack }) {
   const [agreed, setAgreed] = useState(false);
+  const [parentConsent, setParentConsent] = useState(false);
+
+  const age = getAgeFromDOB(profile?.dateOfBirth);
+  const isMinor = age !== null && age < 18;
+  const canProceed = agreed && (!isMinor || parentConsent);
 
   return (
-    <StepCard onBack={onBack} onNext={() => agreed && onSave({})} isSaving={isSaving}>
+    <StepCard onBack={onBack} onNext={() => canProceed && onSave({})} isSaving={isSaving}>
       <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, maxHeight: 280, overflow: 'auto', mb: 3, bgcolor: 'grey.50' }}>
         <Typography variant="body2" color="text.secondary" paragraph>
           I hereby declare that all the information provided in this registration form is true and correct to the best of my knowledge.
@@ -787,6 +792,8 @@ function Step7Declaration({ onSave, isSaving, onBack }) {
           in accordance with applicable data protection laws.
         </Typography>
       </Paper>
+
+      {/* Main declaration checkbox */}
       <Box
         onClick={() => setAgreed(a => !a)}
         sx={{
@@ -799,12 +806,47 @@ function Step7Declaration({ onSave, isSaving, onBack }) {
       >
         <CheckCircle color={agreed ? 'primary' : 'disabled'} />
         <Typography variant="body2" fontWeight={agreed ? 600 : 400}>
-          I have read and agree to the above declaration
+          I confirm that all details provided are correct and I agree with the terms and conditions.
         </Typography>
       </Box>
-      {!agreed && (
+
+      {/* Dynamic Parent/Guardian consent — only shown if age < 18 */}
+      {isMinor && (
+        <>
+          <Alert severity="warning" icon={<Warning />} sx={{ mt: 2, mb: 1 }}>
+            <strong>Athlete is under 18 years old ({age} years).</strong> Parent/Guardian consent is mandatory.
+          </Alert>
+          <Box
+            onClick={() => setParentConsent(c => !c)}
+            sx={{
+              display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer',
+              p: 2, borderRadius: 2, border: '2px solid',
+              borderColor: parentConsent ? 'success.main' : 'divider',
+              bgcolor: parentConsent ? 'success.50' : 'transparent',
+              transition: 'all 0.2s',
+            }}
+          >
+            <CheckCircle color={parentConsent ? 'success' : 'disabled'} />
+            <Box>
+              <Typography variant="body2" fontWeight={parentConsent ? 600 : 400}>
+                Parent / Guardian Consent
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                I, the parent/guardian, give consent for my ward to participate in sports activities and competitions
+                organised through this platform. I confirm that the information provided is accurate.
+              </Typography>
+            </Box>
+          </Box>
+        </>
+      )}
+
+      {!canProceed && (
         <Typography variant="caption" color="error" sx={{ mt: 1, display: 'block' }}>
-          You must agree to the declaration to proceed.
+          {!agreed
+            ? 'You must agree to the declaration to proceed.'
+            : isMinor && !parentConsent
+            ? 'Parent/Guardian consent is required for athletes under 18.'
+            : ''}
         </Typography>
       )}
     </StepCard>

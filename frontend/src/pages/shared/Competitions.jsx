@@ -37,6 +37,35 @@ export default function Competitions() {
   const [registering, setRegistering] = useState(false);
   const [tab, setTab] = useState('available'); // 'available' | 'mine'
   const [payingId, setPayingId] = useState(null); // registrationId currently being paid
+  const [ageFilter, setAgeFilter] = useState('recommended'); // 'all' | 'recommended' | specific group
+
+  // ── Compute athlete's age group from profile DOB for auto-filtering ────────
+  const getAgeGroup = () => {
+    const dob = athleteProfile?.dateOfBirth;
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+    if (age < 10) return 'U-10';
+    if (age < 12) return 'U-12';
+    if (age < 14) return 'U-14';
+    if (age < 16) return 'U-16';
+    if (age < 18) return 'U-18';
+    if (age < 21) return 'U-21';
+    if (age < 40) return 'Senior';
+    return 'Masters';
+  };
+  const myAgeGroup = user?.role === 'athlete' ? (athleteProfile?.ageGroup || getAgeGroup()) : null;
+
+  // Filter competitions based on selected age group filter
+  const filteredCompetitions = competitions.filter(comp => {
+    if (ageFilter === 'all') return true;
+    const targetGroup = ageFilter === 'recommended' ? myAgeGroup : ageFilter;
+    if (!targetGroup || !comp.ageGroups || comp.ageGroups.length === 0) return true;
+    return comp.ageGroups.includes(targetGroup);
+  });
 
   const fetchData = async () => {
     setLoading(true);
@@ -98,6 +127,7 @@ export default function Competitions() {
   };
 
   const statusColor = { upcoming: 'success', ongoing: 'warning', completed: 'default' };
+  const AGE_GROUPS = ['U-10','U-12','U-14','U-16','U-18','U-21','Senior','Masters'];
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
@@ -128,9 +158,9 @@ export default function Competitions() {
         )}
 
         {/* Tabs */}
-        <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+        <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
           {[
-            { key: 'available', label: `Available (${competitions.length})` },
+            { key: 'available', label: `Available (${filteredCompetitions.length})` },
             { key: 'mine', label: `My Registrations (${myRegistrations.length})` },
           ].map(t => (
             <Button key={t.key} variant={tab === t.key ? 'contained' : 'outlined'} onClick={() => setTab(t.key)} size="small">
@@ -139,18 +169,55 @@ export default function Competitions() {
           ))}
         </Box>
 
+        {/* Age Group Filter — shown only on 'available' tab */}
+        {tab === 'available' && (
+          <Box sx={{ mb: 3, p: 1.5, bgcolor: 'grey.50', borderRadius: 2, display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
+            <Typography variant="caption" fontWeight={700} color="text.secondary" sx={{ mr: 1 }}>Filter by Age:</Typography>
+            <Chip
+              label={myAgeGroup ? `My Group (${myAgeGroup})` : 'Recommended'}
+              size="small"
+              color={ageFilter === 'recommended' ? 'primary' : 'default'}
+              variant={ageFilter === 'recommended' ? 'filled' : 'outlined'}
+              onClick={() => setAgeFilter('recommended')}
+              sx={{ cursor: 'pointer', fontWeight: ageFilter === 'recommended' ? 700 : 400 }}
+            />
+            <Chip
+              label="All"
+              size="small"
+              color={ageFilter === 'all' ? 'primary' : 'default'}
+              variant={ageFilter === 'all' ? 'filled' : 'outlined'}
+              onClick={() => setAgeFilter('all')}
+              sx={{ cursor: 'pointer', fontWeight: ageFilter === 'all' ? 700 : 400 }}
+            />
+            {AGE_GROUPS.map(g => (
+              <Chip
+                key={g} label={g} size="small"
+                color={ageFilter === g ? 'primary' : 'default'}
+                variant={ageFilter === g ? 'filled' : 'outlined'}
+                onClick={() => setAgeFilter(g)}
+                sx={{ cursor: 'pointer', fontWeight: ageFilter === g ? 700 : 400 }}
+              />
+            ))}
+          </Box>
+        )}
+
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
         ) : tab === 'available' ? (
           <>
-            {competitions.length === 0 ? (
+            {filteredCompetitions.length === 0 ? (
               <Card><CardContent sx={{ textAlign: 'center', py: 6 }}>
                 <Typography variant="h4" mb={1}>🏟️</Typography>
-                <Typography color="text.secondary">No competitions available yet.</Typography>
+                <Typography color="text.secondary" mb={1}>
+                  {competitions.length > 0 ? 'No competitions match your age group filter.' : 'No competitions available yet.'}
+                </Typography>
+                {competitions.length > 0 && (
+                  <Button size="small" onClick={() => setAgeFilter('all')}>Show All Competitions</Button>
+                )}
               </CardContent></Card>
             ) : (
               <Grid container spacing={3}>
-                {competitions.map((comp) => {
+                {filteredCompetitions.map((comp) => {
                   const daysLeft = getDaysLeft(comp.deadline);
                   const registered = isRegistered(comp._id);
                   return (

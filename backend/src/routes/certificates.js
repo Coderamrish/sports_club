@@ -8,6 +8,7 @@ const Competition = require('../models/Competition.model');
 const Payment = require('../models/payment.model');
 const generateCertificate = require('../utils/generateCertificate');
 const sendCertificateEmail = require('../utils/sendCertificateEmail');
+const emailService = require('../services/email.service');
 const { protect, restrictTo } = require('../middleware/auth.middleware');
 
 // ─── ADMIN: Get all registrations for a competition (for issuing certificates) ──
@@ -175,6 +176,89 @@ router.post('/admin/resend-email/:registrationId', protect, restrictTo('admin'),
   } catch (err) {
     console.error('Resend email error:', err);
     res.status(500).json({ message: 'Failed to resend email', error: err.message });
+  }
+});
+
+// ─── ADMIN: Broadcast "Results Published" to all attendees ────────────────────
+router.post('/admin/broadcast-results/:competitionId', protect, restrictTo('admin'), async (req, res) => {
+  try {
+    const competition = await Competition.findById(req.params.competitionId);
+    if (!competition) {
+      return res.status(404).json({ message: 'Competition not found' });
+    }
+
+    // Get all registrations with users
+    const registrations = await CompetitionRegistration.find({
+      competition: competition._id,
+      status: 'Active',
+      attendanceStatus: 'Present',
+    }).populate('athlete', 'fullName email');
+
+    if (registrations.length === 0) {
+      return res.status(400).json({ message: 'No attendees found for this competition' });
+    }
+
+    const formatDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
+    let sent = 0, failed = 0;
+
+    for (const reg of registrations) {
+      if (!reg.athlete?.email) { failed++; continue; }
+      try {
+        const medalEmoji = { Gold: '🥇', Silver: '🥈', Bronze: '🥉', Participant: '🏅', None: '🏅' };
+        const medal = reg.medalWon || 'Participant';
+        await emailService.sendEmail({
+          to: reg.athlete.email,
+          subject: `🏆 Results Published — ${competition.title}!`,
+          html: `
+            <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
+              <div style="background:linear-gradient(135deg,#1a3c5e,#1565C0);padding:28px;color:white;text-align:center">
+                <h1 style="margin:0;font-size:28px">🏆 Results Are Out!</h1>
+                <p style="margin:8px 0 0;opacity:.85;font-size:15px">${competition.title}</p>
+              </div>
+              <div style="padding:24px;color:#333">
+                <p>Dear <strong>${reg.athlete.fullName}</strong>,</p>
+                <p>The results for <strong>${competition.title}</strong> have been published by the admin!</p>
+                
+                <div style="background:linear-gradient(135deg,#F5F5F5,#EEEEEE);border-radius:12px;padding:20px;margin:20px 0;text-align:center">
+                  <p style="margin:0 0 4px;font-size:14px;color:#888">Your Achievement</p>
+                  <p style="margin:0;font-size:36px">${medalEmoji[medal] || '🏅'}</p>
+                  <p style="margin:4px 0 0;font-size:18px;font-weight:700;color:#333">${medal}</p>
+                </div>
+                
+                <div style="background:#F3F6FF;border:1px solid #BBDEFB;border-radius:10px;padding:16px;margin:16px 0">
+                  <p style="margin:4px 0"><strong>📅 Date:</strong> ${formatDate(competition.date)}</p>
+                  <p style="margin:4px 0"><strong>📍 Venue:</strong> ${competition.venue || '—'}</p>
+                </div>
+                
+                ${reg.certificateUrl
+                  ? '<p style="text-align:center;margin:20px 0"><strong>🎓 Your certificate is ready!</strong> Log in to your dashboard to download it.</p>'
+                  : '<p style="text-align:center;color:#888">Certificate will be available for download from your dashboard shortly.</p>'
+                }
+                
+                <p>Congratulations and thank you for participating! 🎯</p>
+              </div>
+              <div style="background:#F8F9FA;padding:16px;text-align:center;font-size:12px;color:#999">
+                © ${new Date().getFullYear()} Sports Club Management System
+              </div>
+            </div>
+          `,
+        });
+        sent++;
+      } catch (emailErr) {
+        console.warn(`Broadcast email failed for ${reg.athlete.email}:`, emailErr.message);
+        failed++;
+      }
+    }
+
+    res.json({
+      message: `Results broadcast complete: ${sent} sent, ${failed} failed`,
+      sent,
+      failed,
+      total: registrations.length,
+    });
+  } catch (err) {
+    console.error('Broadcast results error:', err);
+    res.status(500).json({ message: 'Broadcast failed', error: err.message });
   }
 });
 

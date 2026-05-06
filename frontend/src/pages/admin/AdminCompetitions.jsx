@@ -43,6 +43,7 @@ export default function AdminCompetitions() {
   const [certLoading, setCertLoading] = useState(false);
   const [certResults, setCertResults] = useState({});
   const [certSaving, setCertSaving] = useState(false);
+  const [broadcastSaving, setBroadcastSaving] = useState(false);
 
   const fetchCompetitions = async () => {
     setLoading(true);
@@ -238,6 +239,21 @@ export default function AdminCompetitions() {
       toast.error(e.response?.data?.message || 'Certificate generation failed');
     } finally {
       setCertSaving(false);
+    }
+  };
+
+  const handleBroadcastResults = async () => {
+    if (!certDialog) return;
+    if (!window.confirm('This will send an email to ALL present attendees notifying them that results are published. Continue?')) return;
+    
+    setBroadcastSaving(true);
+    try {
+      const { data } = await api.post(`/certificates/admin/broadcast-results/${certDialog._id}`);
+      toast.success(data.message || 'Results broadcasted successfully!');
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Broadcast failed');
+    } finally {
+      setBroadcastSaving(false);
     }
   };
 
@@ -598,10 +614,16 @@ export default function AdminCompetitions() {
               <Typography fontWeight={700}>🏅 Manage Certificates & Medals</Typography>
               <Typography variant="caption" color="text.secondary">{certDialog?.title}</Typography>
             </Box>
-            <Button variant="contained" color="secondary" startIcon={<EmojiEvents />}
-              onClick={handleGenerateCertificates} disabled={certSaving || certRegs.length === 0}>
-              {certSaving ? <CircularProgress size={18} color="inherit" /> : 'Generate & Email All'}
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button variant="outlined" color="primary" startIcon={<Email />}
+                onClick={handleBroadcastResults} disabled={broadcastSaving || certSaving || certRegs.length === 0}>
+                {broadcastSaving ? <CircularProgress size={18} color="inherit" /> : 'Broadcast Results'}
+              </Button>
+              <Button variant="contained" color="secondary" startIcon={<EmojiEvents />}
+                onClick={handleGenerateCertificates} disabled={certSaving || broadcastSaving || certRegs.length === 0}>
+                {certSaving ? <CircularProgress size={18} color="inherit" /> : 'Generate & Email All'}
+              </Button>
+            </Box>
           </Box>
         </DialogTitle>
         <Divider />
