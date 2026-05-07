@@ -88,11 +88,13 @@ export const initiatePayment = async ({ entityType, entityId, description, onSuc
         if (onSuccess) onSuccess(paymentData);
       })
       .catch((err) => {
-        if (onFailure) onFailure(err);
+        const errorMsg = err.response?.data?.message || err.message || 'Payment initiation failed';
+        if (onFailure) onFailure(new Error(errorMsg));
       });
 
   } catch (err) {
-    if (onFailure) onFailure(err);
+    const errorMsg = err.response?.data?.message || err.message || 'Payment failed to initialize';
+    if (onFailure) onFailure(new Error(errorMsg));
   }
 };
 

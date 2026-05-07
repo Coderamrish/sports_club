@@ -39,7 +39,7 @@ exports.createOrder = async (req, res, next) => {
   try {
     const { entityType, entityId } = req.body;
     if (!entityType || !entityId) {
-      return next(new AppError('entityType and entityId are required.', 400));
+      return next(new AppError(`Missing required fields: entityType=${entityType}, entityId=${entityId}`, 400));
     }
 
     let amount, description, entity;
@@ -48,7 +48,7 @@ exports.createOrder = async (req, res, next) => {
     if (entityType === 'competition_registration') {
       entity = await CompetitionRegistration.findById(entityId)
         .populate('competition', 'title registrationFee');
-      if (!entity) return next(new AppError('Registration not found.', 404));
+      if (!entity) return next(new AppError(`Competition registration not found for ID: ${entityId}`, 404));
       if (String(entity.athlete) !== String(req.user._id)) {
         return next(new AppError('Not authorised for this registration.', 403));
       }
@@ -62,22 +62,23 @@ exports.createOrder = async (req, res, next) => {
       // Profile registration fee (athlete or coach)
       if (req.user.role === 'athlete') {
         entity = await AthleteProfile.findOne({ user: req.user._id });
+        amount = Number(process.env.ATHLETE_REGISTRATION_FEE) || 1500;
       } else if (req.user.role === 'coach') {
         entity = await CoachProfile.findOne({ user: req.user._id });
+        amount = Number(process.env.COACH_REGISTRATION_FEE) || 2500;
       }
-      if (!entity) return next(new AppError('Profile not found.', 404));
+      if (!entity) return next(new AppError(`Profile not found for user ${req.user._id}`, 404));
       if (entity.profileFeeStatus === 'Paid') {
-        return next(new AppError('Profile registration fee already paid.', 400));
+        return next(new AppError('Profile registration fee has already been marked as Paid.', 400));
       }
-      amount      = Number(process.env.PROFILE_REGISTRATION_FEE) || 500;
       description = `Profile registration fee – ${req.user.fullName}`;
 
     } else {
-      return next(new AppError('Invalid entityType.', 400));
+      return next(new AppError(`Invalid entityType: ${entityType}`, 400));
     }
 
     if (!amount || amount <= 0) {
-      return next(new AppError('Invalid amount for this payment.', 400));
+      return next(new AppError(`Invalid amount: ${amount}`, 400));
     }
 
     // ── Create Razorpay order ────────────────────────────────────────────────

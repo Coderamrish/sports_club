@@ -23,6 +23,7 @@ import {
 } from '../../store/slices/profileSlice';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { initiatePayment } from '../../services/payment.service';
 
 const PROFILE_STEPS = [
   { label: 'Personal Details',      check: (p) => !!(p?.gender && p?.dateOfBirth) },
@@ -100,10 +101,10 @@ export default function AthleteDashboard() {
 
   const getStatusMsg = () => {
     if (isApproved && feePaid)   return { text:'✅ Fully active! Register for competitions anytime.', severity:'success' };
-    if (isApproved && !feePaid)  return { text:'✅ Profile approved! Complete payment to fully activate.', severity:'info', action:true };
+    if (isApproved && !feePaid)  return { text:'✅ Profile approved! Complete payment to fully activate.', severity:'info', action:true, type:'payment' };
     if (regStatus==='Pending Review') return { text:'⏳ Your profile is under admin review.', severity:'info' };
-    if (regStatus==='Rejected')  return { text:'❌ Profile rejected. Review admin notes and resubmit.', severity:'error', action:true };
-    return { text:'⚠️ Complete your profile to get approved for competitions.', severity:'warning', action:completion<100 };
+    if (regStatus==='Rejected')  return { text:'❌ Profile rejected. Review admin notes and resubmit.', severity:'error', action:true, type:'setup' };
+    return { text:'⚠️ Complete your profile to get approved for competitions.', severity:'warning', action:completion<100, type:'setup' };
   };
   const statusMsg = getStatusMsg();
 
@@ -133,9 +134,36 @@ export default function AthleteDashboard() {
           <>
             <Alert severity={statusMsg.severity} sx={{ mb:3 }}
               action={statusMsg.action && (
-                <Button color="inherit" size="small" startIcon={<Edit />} onClick={() => navigate('/athlete/profile-setup')}>
-                  {completion===0?'Start Setup':'Continue'}
-                </Button>
+                statusMsg.type === 'payment' ? (
+                  <Button 
+                    color="primary" 
+                    variant="contained" 
+                    size="small" 
+                    startIcon={<AttachMoney />} 
+                    onClick={async () => {
+                      if (!profile?._id) {
+                        toast.error('Profile data not loaded. Please refresh.');
+                        return;
+                      }
+                      await initiatePayment({
+                        entityType: 'profile_registration',
+                        entityId:   profile._id,
+                        description: 'Athlete Profile Registration Fee',
+                        onSuccess: () => {
+                          toast.success('Payment successful! Your profile is now fully active.');
+                          dispatch(fetchAthleteProfile());
+                        },
+                        onFailure: (err) => toast.error(err.message || 'Payment failed.')
+                      });
+                    }}
+                  >
+                    Pay Now
+                  </Button>
+                ) : (
+                  <Button color="inherit" size="small" startIcon={<Edit />} onClick={() => navigate('/athlete/profile-setup')}>
+                    {completion===0?'Start Setup':'Continue'}
+                  </Button>
+                )
               )}>
               {statusMsg.text}
             </Alert>
@@ -388,7 +416,7 @@ export default function AthleteDashboard() {
                             )}
                           </Box>
                           <Box sx={{ textAlign:'right' }}>
-                            <Typography variant="h6" fontWeight={700}>₹500</Typography>
+                            <Typography variant="h6" fontWeight={700}>₹1,500</Typography>
                             <Chip label={feePaid?'✓ Paid':'Pending'} color={feePaid?'success':'warning'} size="small" sx={{ fontWeight:700 }} />
                           </Box>
                         </Box>

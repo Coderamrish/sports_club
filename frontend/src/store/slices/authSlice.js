@@ -34,18 +34,23 @@ export const logoutUser = createAsyncThunk('auth/logout', async (_, { rejectWith
 
 export const fetchCurrentUser = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => {
   try { return await authService.getMe(); }
-  catch (err) { return rejectWithValue(err.response?.data || { message: err.message }); }
+  catch (err) {
+    return rejectWithValue({
+      message: err.response?.data?.message || err.message,
+      status:  err.response?.status,
+    });
+  }
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function persistTokens(accessToken, refreshToken) {
-  if (accessToken) localStorage.setItem('accessToken', accessToken);
-  if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+  if (accessToken) sessionStorage.setItem('accessToken', accessToken);
+  if (refreshToken) sessionStorage.setItem('refreshToken', refreshToken);
 }
 function clearTokens() {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('refreshToken');
+  sessionStorage.removeItem('accessToken');
+  sessionStorage.removeItem('refreshToken');
 }
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
@@ -54,8 +59,9 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user:              null,
-    accessToken:       localStorage.getItem('accessToken') || null,
-    isAuthenticated:    !!localStorage.getItem('accessToken'), 
+    accessToken:       sessionStorage.getItem('accessToken') || null,
+    isAuthenticated:   !!sessionStorage.getItem('accessToken'),
+    authInitialized:   false,   // true once the startup /auth/me check completes
     isLoading:         false,
     error:             null,
     pendingEmail:      null,
@@ -67,6 +73,7 @@ const authSlice = createSlice({
       state.user            = user;
       state.accessToken     = accessToken;
       state.isAuthenticated = true;
+      state.authInitialized = true;
       persistTokens(accessToken, refreshToken);
     },
     clearCredentials: (state) => {
@@ -75,6 +82,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       clearTokens();
     },
+    markInitialized:      (state)         => { state.authInitialized = true; },
     setPendingEmail:      (state, action) => { state.pendingEmail     = action.payload; },
     setRegistrationStep:  (state, action) => { state.registrationStep = action.payload; },
     clearError:           (state)         => { state.error            = null; },
@@ -103,6 +111,7 @@ const authSlice = createSlice({
         s.user             = user;
         s.accessToken      = accessToken;
         s.isAuthenticated  = true;
+        s.authInitialized  = true;
         s.registrationStep = 'complete';
         persistTokens(accessToken, refreshToken);
       })
@@ -117,6 +126,7 @@ const authSlice = createSlice({
         s.user            = user;
         s.accessToken     = accessToken;
         s.isAuthenticated = true;
+        s.authInitialized = true;
         persistTokens(accessToken, refreshToken);
       })
       .addCase(loginUser.rejected,  (s, a) => { s.isLoading = false; s.error = a.payload?.message || 'Login failed'; });
@@ -126,31 +136,46 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (s) => {
         s.user = null; s.accessToken = null; s.isAuthenticated = false;
         clearTokens();
+      })
+      .addCase(logoutUser.rejected, (s) => {
+        // Force logout even if API call fails
+        s.user = null; s.accessToken = null; s.isAuthenticated = false;
+        clearTokens();
       });
 
     // ── Fetch Me ──────────────────────────────────────────────────────
     builder
       .addCase(fetchCurrentUser.pending,   (s) => { s.isLoading = true; })
       .addCase(fetchCurrentUser.fulfilled, (s, a) => {
-        s.isLoading = false;
-        s.user = a.payload.data?.user;
+        s.isLoading       = false;
+        s.authInitialized = true;
+        s.user            = a.payload.data?.user;
+        s.accessToken     = sessionStorage.getItem('accessToken');
         s.isAuthenticated = true;
       })
-      .addCase(fetchCurrentUser.rejected,  (s) => {
-        s.isLoading = false; s.user = null; s.isAuthenticated = false;
-        clearTokens();
+      .addCase(fetchCurrentUser.rejected,  (s, a) => {
+        s.isLoading       = false;
+        s.authInitialized = true;
+        // Only clear session on explicit auth failure (401), not network errors
+        const httpStatus = a.payload?.status || a.payload?.statusCode;
+        if (httpStatus === 401 || !sessionStorage.getItem('accessToken')) {
+          s.user            = null;
+          s.isAuthenticated = false;
+          clearTokens();
+        }
       });
   },
 });
 
 export const {
-  setCredentials, clearCredentials, setPendingEmail,
-  setRegistrationStep, clearError, updateUser,
+  setCredentials, clearCredentials, markInitialized,
+  setPendingEmail, setRegistrationStep, clearError, updateUser,
 } = authSlice.actions;
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
 export const selectCurrentUser        = (s) => s.auth.user;
 export const selectIsAuthenticated    = (s) => s.auth.isAuthenticated;
+export const selectAuthInitialized    = (s) => s.auth.authInitialized;
 export const selectAuthLoading        = (s) => s.auth.isLoading;
 export const selectAuthError          = (s) => s.auth.error;
 export const selectPendingEmail       = (s) => s.auth.pendingEmail;

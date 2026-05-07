@@ -28,6 +28,7 @@ import {
 } from '../../store/slices/profileSlice';
 import { logoutUser, selectCurrentUser } from '../../store/slices/authSlice';
 import { compressImage, formatFileSize, validateFile } from '../../utils/fileCompression';
+import { initiatePayment } from '../../services/payment.service';
 
 // ─── Step Definitions ─────────────────────────────────────────────────────────
 const STEPS = [
@@ -340,6 +341,7 @@ export default function AthleteProfileSetup() {
 
 // ─── Step Content Router ──────────────────────────────────────────────────────
 function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, onDelete, onBack, onGoToDashboard }) {
+  const dispatch = useDispatch();
   switch (step) {
     case 1: return <Step1Personal profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
     case 2: return <Step2Family profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
@@ -348,7 +350,7 @@ function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, o
     case 5: return <Step5Competition profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
     case 6: return <Step6Documents profile={profile} onSave={onSave} isSaving={isSaving} isUploading={isUploading} onUpload={onUpload} onDelete={onDelete} onBack={onBack} />;
     case 7: return <Step7Declaration profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
-    case 8: return <Step8Payment profile={profile} onGoToDashboard={onGoToDashboard} onBack={onBack} />;
+    case 8: return <Step8Payment profile={profile} onGoToDashboard={onGoToDashboard} onBack={onBack} onRefresh={() => dispatch(fetchAthleteProfile())} />;
     default: return null;
   }
 }
@@ -854,11 +856,31 @@ function Step7Declaration({ profile, onSave, isSaving, onBack }) {
 }
 
 // ─── Step 8: Payment ──────────────────────────────────────────────────────────
-function Step8Payment({ profile, onGoToDashboard, onBack }) {
+function Step8Payment({ profile, onGoToDashboard, onBack, onRefresh }) {
   const isApproved = profile?.registrationStatus === 'Approved';
+  const [paying, setPaying] = useState(false);
 
-  const handlePayment = () => {
-    toast.success("Payment Gateway Integration is coming in Phase 4!");
+  const handlePayment = async () => {
+    if (!profile?._id) {
+      console.error('❌ Cannot initiate payment: Profile ID is missing', profile);
+      toast.error('Profile data is incomplete. Please refresh and try again.');
+      return;
+    }
+    setPaying(true);
+    await initiatePayment({
+      entityType: 'profile_registration',
+      entityId:   profile._id,
+      description: 'Athlete Profile Registration Fee',
+      onSuccess: () => {
+        setPaying(false);
+        toast.success('Payment successful! Your profile is now fully active.');
+        if (onRefresh) onRefresh();
+      },
+      onFailure: (err) => {
+        setPaying(false);
+        toast.error(err.message || 'Payment failed. Please try again.');
+      }
+    });
   };
 
   return (
@@ -883,8 +905,15 @@ function Step8Payment({ profile, onGoToDashboard, onBack }) {
         {isApproved ? (
           <Box sx={{ mb: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
             <Typography variant="body1" fontWeight={600} mb={1}>Registration Fee: ₹1,500</Typography>
-            <Button variant="contained" color="primary" size="large" onClick={handlePayment} sx={{ px: 4, mt: 1 }}>
-              Pay Now
+            <Button 
+              variant="contained" 
+              color="primary" 
+              size="large" 
+              onClick={handlePayment} 
+              disabled={paying}
+              sx={{ px: 4, mt: 1 }}
+            >
+              {paying ? <CircularProgress size={24} color="inherit" /> : 'Pay Now'}
             </Button>
           </Box>
         ) : (

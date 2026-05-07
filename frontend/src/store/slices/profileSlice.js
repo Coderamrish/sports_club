@@ -115,6 +115,16 @@ const profileSlice = createSlice({
         state.isUploading = false;
         state.uploadError = action.payload?.message || 'Delete failed';
       });
+    // ── Logout cleanup ───────────────────────────────────────────────
+    builder.addMatcher(
+      (action) => action.type.startsWith('auth/logout') || action.type === 'auth/clearCredentials',
+      (state) => {
+        state.athleteProfile = null;
+        state.currentStep    = 1;
+        state.isLoading      = false;
+        state.error          = null;
+      }
+    );
   },
 });
 

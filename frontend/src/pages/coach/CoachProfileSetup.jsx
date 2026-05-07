@@ -27,6 +27,7 @@ import {
 } from '../../store/slices/coachProfileSlice';
 import { logoutUser, selectCurrentUser } from '../../store/slices/authSlice';
 import { compressImage, validateFile } from '../../utils/fileCompression';
+import { initiatePayment } from '../../services/payment.service';
 
 // ─── Step Definitions ─────────────────────────────────────────────────────────
 const STEPS = [
@@ -325,12 +326,13 @@ export default function CoachProfileSetup() {
 
 // ─── Step Content Router ──────────────────────────────────────────────────────
 function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, onDelete, onBack, onGoToDashboard }) {
+  const dispatch = useDispatch();
   switch (step) {
     case 1: return <Step1Personal profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
     case 2: return <Step2Address profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
     case 3: return <Step3Club profile={profile} onSave={onSave} isSaving={isSaving} onBack={onBack} />;
     case 4: return <Step4Documents profile={profile} onSave={onSave} isSaving={isSaving} isUploading={isUploading} onUpload={onUpload} onDelete={onDelete} onBack={onBack} />;
-    case 5: return <Step5Declaration profile={profile} onGoToDashboard={onGoToDashboard} onBack={onBack} />;
+    case 5: return <Step5Declaration profile={profile} onGoToDashboard={onGoToDashboard} onBack={onBack} onRefresh={() => dispatch(fetchCoachProfile())} />;
     default: return null;
   }
 }
@@ -519,11 +521,26 @@ function Step4Documents({ profile, onSave, isSaving, isUploading, onUpload, onDe
 }
 
 // ─── Step 5: Declaration & Done ──────────────────────────────────────────────
-function Step5Declaration({ profile, onGoToDashboard, onBack }) {
+function Step5Declaration({ profile, onGoToDashboard, onBack, onRefresh }) {
   const isApproved = profile?.profileStatus === 'Approved';
+  const [paying, setPaying] = useState(false);
 
-  const handlePayment = () => {
-    toast.success("Payment Gateway Integration is coming in Phase 4!");
+  const handlePayment = async () => {
+    setPaying(true);
+    await initiatePayment({
+      entityType: 'profile_registration',
+      entityId:   profile._id,
+      description: 'Coach Profile Registration Fee',
+      onSuccess: () => {
+        setPaying(false);
+        toast.success('Payment successful! Your profile is now fully active.');
+        if (onRefresh) onRefresh();
+      },
+      onFailure: (err) => {
+        setPaying(false);
+        toast.error(err.message || 'Payment failed. Please try again.');
+      }
+    });
   };
 
   return (
@@ -548,8 +565,15 @@ function Step5Declaration({ profile, onGoToDashboard, onBack }) {
         {isApproved ? (
            <Box sx={{ mb: 3, p: 3, bgcolor: 'grey.50', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
              <Typography variant="body1" fontWeight={600} mb={1}>Coach Registration Fee: ₹2,500</Typography>
-             <Button variant="contained" color="success" size="large" onClick={handlePayment} sx={{ px: 4, mt: 1 }}>
-               Pay Now
+             <Button 
+                variant="contained" 
+                color="success" 
+                size="large" 
+                onClick={handlePayment} 
+                disabled={paying}
+                sx={{ px: 4, mt: 1 }}
+              >
+               {paying ? <CircularProgress size={24} color="inherit" /> : 'Pay Now'}
              </Button>
            </Box>
         ) : (

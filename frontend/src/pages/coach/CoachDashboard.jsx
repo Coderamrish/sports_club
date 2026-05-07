@@ -25,6 +25,7 @@ import {
   selectCoachError, clearCoachError,
 } from '../../store/slices/coachProfileSlice';
 import api from '../../services/api';
+import { initiatePayment } from '../../services/payment.service';
 
 const SPECIALIZATIONS = [
   'Athletics','Swimming','Football','Basketball','Cricket',
@@ -139,10 +140,10 @@ export default function CoachDashboard() {
 
   const getStatusMsg = () => {
     if (isApproved && feePaid)  return { text:'✅ Fully active! You can now coach athletes.', severity:'success' };
-    if (isApproved && !feePaid) return { text:'✅ Profile approved! Pay the registration fee to fully activate.', severity:'info' };
+    if (isApproved && !feePaid) return { text:'✅ Profile approved! Pay the registration fee to fully activate.', severity:'info', action:true, type:'payment' };
     if (profileStatus==='Pending Review') return { text:'⏳ Your profile is under admin review.', severity:'info' };
-    if (profileStatus==='Rejected')       return { text:'❌ Profile rejected. Review admin notes and resubmit.', severity:'error' };
-    return { text:'⚠️ Profile incomplete. Fill in your details to submit for review.', severity:'warning' };
+    if (profileStatus==='Rejected')       return { text:'❌ Profile rejected. Review admin notes and resubmit.', severity:'error', action:true, type:'setup' };
+    return { text:'⚠️ Profile incomplete. Fill in your details to submit for review.', severity:'warning', action:completion<100, type:'setup' };
   };
   const statusMsg = getStatusMsg();
 
@@ -178,7 +179,37 @@ export default function CoachDashboard() {
         ) : (
           <>
             {error && <Alert severity="error" sx={{ mb:2 }} onClose={() => dispatch(clearCoachError())}>{error}</Alert>}
-            <Alert severity={statusMsg.severity} sx={{ mb:3 }}>{statusMsg.text}</Alert>
+            <Alert severity={statusMsg.severity} sx={{ mb:3 }}
+              action={statusMsg.action && (
+                statusMsg.type === 'payment' ? (
+                  <Button 
+                    color="success" 
+                    variant="contained" 
+                    size="small" 
+                    startIcon={<AttachMoney />} 
+                    onClick={async () => {
+                      await initiatePayment({
+                        entityType: 'profile_registration',
+                        entityId:   profile._id,
+                        description: 'Coach Profile Registration Fee',
+                        onSuccess: () => {
+                          toast.success('Payment successful! Your profile is now fully active.');
+                          dispatch(fetchCoachProfile());
+                        },
+                        onFailure: (err) => toast.error(err.message || 'Payment failed.')
+                      });
+                    }}
+                  >
+                    Pay Now
+                  </Button>
+                ) : (
+                  <Button color="inherit" size="small" startIcon={<Edit />} onClick={() => setTab(1)}>
+                    {completion===0?'Start Setup':'Continue'}
+                  </Button>
+                )
+              )}>
+              {statusMsg.text}
+            </Alert>
 
             {/* Stat cards */}
             <Grid container spacing={2} mb={3}>
@@ -472,7 +503,7 @@ export default function CoachDashboard() {
                             )}
                           </Box>
                           <Box sx={{ textAlign:'right' }}>
-                            <Typography variant="h6" fontWeight={700}>₹500</Typography>
+                            <Typography variant="h6" fontWeight={700}>₹2,500</Typography>
                             <Chip label={feePaid?'✓ Paid':'Pending'} color={feePaid?'success':'warning'} size="small" sx={{ fontWeight:700 }} />
                           </Box>
                         </Box>

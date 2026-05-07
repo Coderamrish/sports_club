@@ -1,58 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Box, CircularProgress, Alert, Button } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { Box, Alert, Button } from '@mui/material';
 import {
-  selectIsAuthenticated, selectCurrentUser, selectAuthLoading,
-  fetchCurrentUser,
+  selectIsAuthenticated,
+  selectCurrentUser,
 } from '../../store/slices/authSlice';
 
+/**
+ * ProtectedRoute
+ *
+ * Auth initialization is handled once at the top level by <AuthInitializer>
+ * in App.jsx, so by the time this component renders:
+ *   - authInitialized === true
+ *   - user is either populated (valid session) or null (no/expired token)
+ *
+ * This component only needs to:
+ *   1. Redirect unauthenticated users to /auth/login
+ *   2. Redirect users to their own dashboard if they try to access the wrong role's route
+ *   3. Check admin-level and permission requirements
+ */
 export default function ProtectedRoute({
   children,
-  allowedRoles         = [],
-  adminLevels          = [],
-  requiredPermissions  = [],
+  allowedRoles        = [],
+  adminLevels         = [],
+  requiredPermissions = [],
 }) {
-  const dispatch        = useDispatch();
   const location        = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user            = useSelector(selectCurrentUser);
-  const isLoading       = useSelector(selectAuthLoading);
-  const token           = localStorage.getItem('accessToken');
-  const [isInitializing, setIsInitializing] = useState(true);
+  const token           = sessionStorage.getItem('accessToken');
 
-  useEffect(() => {
-    const initializeAuth = async () => {
-      // If we have a token but no user in Redux (e.g., after page refresh), fetch current user
-      if (token && !user) {
-        await dispatch(fetchCurrentUser());
-      }
-      setIsInitializing(false);
-    };
-    
-    initializeAuth();
-  }, []); // Run only once on mount
-
-  // Show spinner while initializing or fetching user
-  if (isInitializing || isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  // No token — send to login
-  if (!token) {
+  // No token or not authenticated → login
+  if (!token || !isAuthenticated) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Token exists but user failed to load (expired / invalid token)
+  // Token present but user failed to load (should not normally reach here
+  // thanks to AuthInitializer, but kept as a safety net)
   if (!user) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
-  // Role check - redirect to correct dashboard if role not allowed
+  // Role mismatch → redirect to the user's own dashboard
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     const roleRedirects = {
       athlete: '/athlete/dashboard',
