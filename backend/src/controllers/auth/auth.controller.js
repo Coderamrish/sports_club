@@ -22,35 +22,51 @@ exports.register = async (req, res, next) => {
       return next(new AppError('Invalid role. Must be athlete or coach.', 400));
     }
 
-    // Check for existing email or mobile (separate checks for specific error messages)
-    const existingEmail = await User.findOne({ email: email.toLowerCase() });
-    if (existingEmail) {
-      return next(new AppError('This email is already registered. Please log in or use a different email.', 409));
-    }
+    // Check for existing email or mobile
+    const existingEmailUser = await User.findOne({ email: email.toLowerCase() });
+    
+    if (existingEmailUser) {
+      if (existingEmailUser.isEmailVerified) {
+        return next(new AppError('This email is already registered and verified. Please log in.', 409));
+      }
+      // Unverified user - allow overwriting/re-registering (fixes timeout issues)
+      existingEmailUser.fullName = fullName;
+      existingEmailUser.mobile   = mobile;
+      existingEmailUser.password = password;
+      existingEmailUser.role     = role;
+      await existingEmailUser.save();
+      
+      // Upsert profile shell
+      if (role === 'athlete') {
+        await AthleteProfile.findOneAndUpdate({ user: existingEmailUser._id }, { user: existingEmailUser._id }, { upsert: true });
+      } else if (role === 'coach') {
+        await CoachProfile.findOneAndUpdate({ user: existingEmailUser._id }, { user: existingEmailUser._id }, { upsert: true });
+      }
+      
+      var user = existingEmailUser;
+    } else {
+      // Check if mobile is taken by someone else
+      const existingMobile = await User.findOne({ mobile });
+      if (existingMobile) {
+        return next(new AppError('This mobile number is already registered by another user.', 409));
+      }
 
-    const existingMobile = await User.findOne({ mobile });
-    if (existingMobile) {
-      return next(new AppError('This mobile number is already registered. Please use a different number.', 409));
-    }
+      // Create new user (unverified)
+      user = await User.create({
+        fullName,
+        email,
+        mobile,
+        password,
+        role,
+        isEmailVerified: false,
+      });
 
-    // OTP cooldown check
-    await checkOTPCooldown(email, 'email_verification');
-
-    // Create user (unverified)
-    const user = await User.create({
-      fullName,
-      email,
-      mobile,
-      password,
-      role,
-      isEmailVerified: false,
-    });
-
-    // Create associated profile shell
-    if (role === 'athlete') {
-      await AthleteProfile.create({ user: user._id });
-    } else if (role === 'coach') {
-      await CoachProfile.create({ user: user._id });
+      // Create associated profile shell
+      if (role === 'athlete') {
+        await AthleteProfile.create({ user: user._id });
+      } else if (role === 'coach') {
+        await CoachProfile.create({ user: user._id });
+      }
     }
 
     // Send OTP

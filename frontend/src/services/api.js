@@ -1,6 +1,17 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const getBaseUrl = () => {
+  if (process.env.REACT_APP_API_URL) return process.env.REACT_APP_API_URL;
+  
+  // If we are on localhost, default to local backend
+  if (window.location.hostname === 'localhost') return 'http://localhost:5000/api';
+  
+  // If we are live but no API URL is set, assume it's on the same domain or sub-path
+  // This is better than hitting localhost:5000 which will always fail for users.
+  return '/api'; 
+};
+
+const BASE_URL = getBaseUrl();
 
 // ─── Axios instance ────────────────────────────────────────────────────────
 const api = axios.create({
