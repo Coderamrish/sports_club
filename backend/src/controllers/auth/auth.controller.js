@@ -70,7 +70,22 @@ exports.register = async (req, res, next) => {
     }
 
     // Send OTP
-    await sendEmailOTP(email, fullName, 'email_verification');
+    try {
+      await sendEmailOTP(email, fullName, 'email_verification');
+    } catch (emailError) {
+      logger.error(`❌ Registration OTP failed to ${email}: ${emailError.message}`);
+      return res.status(201).json({
+        success: true,
+        message: `Account created! However, we had trouble sending the verification email. Please click 'Resend OTP' in a moment.`,
+        data: {
+          userId: user._id,
+          email: user.email,
+          role: user.role,
+          isEmailVerified: false,
+          emailError: true
+        },
+      });
+    }
 
     res.status(201).json({
       success: true,
