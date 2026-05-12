@@ -22,7 +22,7 @@ import {
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
-// ── Color palette ──────────────────────────────────────────────────────────────
+// Color palette 
 const COLORS = ['#1565C0','#2E7D32','#F57F17','#C62828','#6A1B9A','#00838F','#4E342E','#37474F'];
 const MEDAL_COLORS = { Gold: '#FFD700', Silver: '#C0C0C0', Bronze: '#CD7F32', None: '#90A4AE' };
 const STATUS_COLOR = {
@@ -95,7 +95,7 @@ export default function AdminAnalytics() {
 
   useEffect(() => { fetchData(); }, []);
 
-  // ── CSV Export ──────────────────────────────────────────────────────────────
+  //  CSV Export 
   const handleExportCSV = async (type) => {
     setExporting(type);
     try {
@@ -114,12 +114,12 @@ export default function AdminAnalytics() {
     }
   };
 
-  // ── PDF Export (print-to-pdf friendly summary) ──────────────────────────────
+  //  PDF Export (print-to-pdf friendly summary)
   const handleExportPDF = () => {
     window.print();
   };
 
-  // ── Update registration result ───────────────────────────────────────────────
+  //Update registration result 
   const handleSaveResult = async () => {
     if (!resultDialog) return;
     setSavingResult(true);
@@ -144,7 +144,7 @@ export default function AdminAnalytics() {
     setResultDialog(reg);
   };
 
-  // ── Derived chart data ───────────────────────────────────────────────────────
+  //  Derived chart data 
   const monthlyData = (data?.payments?.monthlyRevenue || []).map(m => ({
     name: MONTH_NAMES[(m._id.month || 1) - 1] + ' ' + (m._id.year || ''),
     revenue: m.total,
@@ -162,7 +162,7 @@ export default function AdminAnalytics() {
   const compTableData = data?.competitionData || [];
   const recentRegs    = data?.recentRegistrations || [];
 
-  // ── Tab panels ───────────────────────────────────────────────────────────────
+  // Tab panel
   const tabs = ['Overview', 'Competitions', 'Registrations & Results', 'Payments', 'Athletes', 'Coaches', 'Certificates'];
 
   return (
@@ -260,7 +260,7 @@ export default function AdminAnalytics() {
               </Tabs>
             </Card>
 
-            {/* ══════════════════ TAB 0 — OVERVIEW ════════════════════════════ */}
+            {/* TAB 0 — OVERVIEW*/}
             {tab === 0 && (
               <Grid container spacing={3}>
                 {/* Monthly Revenue Chart */}
@@ -387,7 +387,7 @@ export default function AdminAnalytics() {
               </Grid>
             )}
 
-            {/* ══════════════════ TAB 1 — COMPETITIONS ═════════════════════════ */}
+            {/* TAB 1 — COMPETITIONS */}
             {tab === 1 && (
               <Card>
                 <CardContent>
@@ -461,7 +461,7 @@ export default function AdminAnalytics() {
               </Card>
             )}
 
-            {/* ══════════════════ TAB 2 — REGISTRATIONS & RESULTS ═════════════ */}
+            {/* TAB 2 — REGISTRATIONS & RESULTS */}
             {tab === 2 && (
               <Card>
                 <CardContent>
@@ -550,7 +550,7 @@ export default function AdminAnalytics() {
               </Card>
             )}
 
-            {/* ══════════════════ TAB 3 — PAYMENTS ════════════════════════════ */}
+            {/* TAB 3 — PAYMENTS */}
             {tab === 3 && (
               <Grid container spacing={3}>
                 {/* Payment summary cards */}
@@ -616,7 +616,7 @@ export default function AdminAnalytics() {
               </Grid>
             )}
 
-            {/* ══════════════════ TAB 4 — ATHLETES ════════════════════════════ */}
+            {/* TAB 4 — ATHLETES */}
             {tab === 4 && (
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
@@ -684,7 +684,7 @@ export default function AdminAnalytics() {
               </Grid>
             )}
 
-            {/* ══════════════════ TAB 5 — COACHES ════════════════════════════ */}
+            {/* TAB 5 — COACHES */}
             {tab === 5 && (
               <Grid container spacing={3}>
                 <Grid item xs={12} md={5}>
@@ -730,7 +730,7 @@ export default function AdminAnalytics() {
               </Grid>
             )}
 
-            {/* ══════════════════ TAB 6 — CERTIFICATES ═══════════════════════ */}
+            {/* TAB 6 — CERTIFICATES */}
             {tab === 6 && (
               <Grid container spacing={3}>
                 {/* Medal summary */}

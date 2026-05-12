@@ -40,7 +40,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
     logger.info(`📧 Email sent to ${to}: ${info.messageId}`);
     return info;
   } catch (error) {
-    logger.error(`❌ Email failed to ${to}: ${error.message}`);
+    logger.error(` 📧 Email failed to ${to}: ${error.message}`);
     throw error;
   }
 };
@@ -117,7 +117,7 @@ const sendWelcomeEmail = async ({ to, fullName, role, loginUrl }) => {
     </style></head>
     <body>
       <div class="container">
-        <div class="header"><h1>🎉 Welcome to Sports Club!</h1></div>
+        <div class="header"><h1>  🎉 Welcome to Sports Club!</h1></div>
         <div class="body">
           <h2>Hello, ${fullName}!</h2>
           <p>Your <strong>${roleLabel}</strong> account has been successfully created.</p>
@@ -182,7 +182,7 @@ const sendProfileStatusEmail = async ({ to, fullName, role, status, adminNotes }
       .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
     </style></head>
     <body><div class="container">
-      <div class="header"><h1>📋 Profile Update</h1></div>
+      <div class="header"><h1>📋 Profile Update  </h1></div>
       <div class="body">
         <p>Hello <strong>${fullName}</strong>,</p>
         <p>Your <strong>${roleLabel}</strong> profile has been reviewed by the admin.</p>
@@ -229,7 +229,7 @@ const sendPaymentConfirmationEmail = async ({
     </style></head>
     <body><div class="container">
       <div class="header">
-        <h1>🎉 Payment Successful!</h1>
+        <h1> 🎉 Payment Successful!  </h1>
         <p>Your payment has been confirmed</p>
       </div>
       <div class="body">
@@ -304,7 +304,7 @@ const sendPaymentFailedEmail = async ({ to, fullName, amount, orderId, reason })
       .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
     </style></head>
     <body><div class="container">
-      <div class="header"><h1>❌ Payment Failed</h1></div>
+      <div class="header"><h1>  ❌ Payment Failed  </h1></div>
       <div class="body">
         <p>Hello <strong>${fullName}</strong>,</p>
         <p>Unfortunately, your payment of <strong>₹${amount}</strong> could not be processed.</p>
@@ -338,7 +338,7 @@ const sendRegistrationApprovalEmail = async ({ to, fullName, competitionTitle, c
       .footer{background:#F8F9FA;padding:20px;text-align:center;font-size:12px;color:#999;border-top:1px solid #EEE}
     </style></head>
     <body><div class="container">
-      <div class="header"><h1>🏆 Registration Approved!</h1></div>
+      <div class="header"><h1>🏆 Registration Approved! </h1></div>
       <div class="body">
         <p>Hello <strong>${fullName}</strong>,</p>
         <p>Great news! Your competition registration has been <strong>approved</strong> by the admin.</p>
@@ -348,13 +348,13 @@ const sendRegistrationApprovalEmail = async ({ to, fullName, competitionTitle, c
           <div class="detail-row"><span>Venue</span><span>${venue || '—'}</span></div>
           <div class="detail-row"><span>Payment</span><span style="color:${isPaid ? '#2E7D32' : '#E65100'}">${isPaid ? '✓ Paid' : '⚠ Pending – Please pay to confirm your slot'}</span></div>
         </div>
-        ${!isPaid ? `<p style="color:#E65100;background:#FFF3E0;padding:12px;border-radius:6px">⚠️ Your slot is not confirmed until payment is completed. Login to your dashboard to pay now.</p>` : ''}
-        <p>Good luck! 🎯</p>
+        ${!isPaid ? `<p style="color:#E65100;background:#FFF3E0;padding:12px;border-radius:6px">  ⚠️ Your slot is not confirmed until payment is completed. Login to your dashboard to pay now.</p>` : ''}
+        <p>Good luck! 🎯 </p>
       </div>
       <div class="footer">© ${new Date().getFullYear()} Sports Club Management System</div>
     </div></body></html>
   `;
-  return sendEmail({ to, subject: `✅ Registration Approved – ${competitionTitle}`, html });
+  return sendEmail({ to, subject: ` ✅ Registration Approved – ${competitionTitle}`, html });
 };
 
 module.exports = {

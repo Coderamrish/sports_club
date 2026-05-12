@@ -1,6 +1,5 @@
 const express = require('express');
 const router  = express.Router();
-
 const authController      = require('../controllers/auth/auth.controller');
 const adminAuthController = require('../controllers/admin/adminAuth.controller');
 const { protect }         = require('../middleware/auth.middleware');
@@ -11,7 +10,7 @@ const {
   validateOTP, validateResetPassword,
 } = require('../validators/auth.validator');
 
-// ─── Public Routes ────────────────────────────────────────────────────────────
+// Public Routes
 router.post('/register',         slidingWindowLimiter('signup'),      validateRegister,   authController.register);
 router.post('/verify-email',     validateOTP,                                             authController.verifyEmail);
 router.post('/resend-otp',                                                                authController.resendOTP);
@@ -21,7 +20,7 @@ router.post('/forgot-password',                                                 
 router.post('/reset-password',   validateResetPassword,                                  authController.resetPassword);
 router.post('/refresh-token',                                                             authController.refreshToken);
 
-// ─── Debounce check endpoints (email/mobile availability) ─────────────────────
+// Debounce check endpoints (email/mobile availability)
 router.post('/check/email', slidingWindowLimiter('signup'), async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -42,7 +41,7 @@ router.post('/check/mobile', slidingWindowLimiter('signup'), async (req, res, ne
   } catch (err) { next(err); }
 });
 
-// ─── Protected Routes ─────────────────────────────────────────────────────────
+// Protected Routes
 router.use(protect);
 router.get('/me',      authController.getMe);
 router.post('/logout', authController.logout);

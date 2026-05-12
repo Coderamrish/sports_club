@@ -13,14 +13,14 @@ const getBaseUrl = () => {
 
 const BASE_URL = getBaseUrl();
 
-// ─── Axios instance ────────────────────────────────────────────────────────
+// Axios instance
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 
-// ─── Request: attach access token ─────────────────────────────────────────
+// Request: attach access token 
 api.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem('accessToken');
@@ -30,7 +30,7 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ─── Response: auto-refresh on 401 ────────────────────────────────────────
+//  Response: auto-refresh on 401
 let isRefreshing = false;
 let failedQueue  = [];
 

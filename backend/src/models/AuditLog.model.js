@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 /**
  * AuditLog — records admin actions for accountability and traceability.
  * Created automatically via the auditLog() middleware in permissions.middleware.js
+ * NOTE : please prefer to read the comment part of code to undertand better the project message to the technical team.
  */
 const auditLogSchema = new mongoose.Schema(
   {
@@ -13,7 +14,7 @@ const auditLogSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    adminEmail: { type: String },      // snapshot at time of action (survives user deletion)
+    adminEmail: { type: String },      
     adminLevel:  { type: String },
 
     // What they did

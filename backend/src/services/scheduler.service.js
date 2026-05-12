@@ -5,6 +5,8 @@
  *  1. Event reminders (48h / 24h before competition date)
  *  2. Fee reminders (3d / 1d before registration deadline for unpaid users)
  *  3. Missing document alerts (7d before competition for users with incomplete docs)
+ * 
+ * NOTE : Read it for clear and clean implementation
  */
 const cron = require('node-cron');
 const Competition = require('../models/Competition.model');
@@ -14,16 +16,13 @@ const User = require('../models/User.model');
 const emailService = require('../services/email.service');
 const logger = require('../utils/logger');
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers
 const hoursUntil = (date) => (new Date(date) - new Date()) / (1000 * 60 * 60);
 const daysUntil = (date) => hoursUntil(date) / 24;
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // 1. Event Reminders — 48h and 24h before competition date
-// ═══════════════════════════════════════════════════════════════════════════════
 async function sendEventReminders() {
   try {
     const now = new Date();
@@ -94,9 +93,7 @@ async function sendEventReminders() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // 2. Fee Reminders — 3d and 1d before deadline for unpaid registrations
-// ═══════════════════════════════════════════════════════════════════════════════
 async function sendFeeReminders() {
   try {
     const now = new Date();
@@ -159,9 +156,7 @@ async function sendFeeReminders() {
   }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // 3. Missing Document Alerts — 7 days before competition for incomplete profiles
-// ═══════════════════════════════════════════════════════════════════════════════
 async function sendMissingDocAlerts() {
   try {
     const now = new Date();
@@ -227,10 +222,7 @@ async function sendMissingDocAlerts() {
     logger.error(`Missing doc alert job error: ${err.message}`);
   }
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // Schedule all cron jobs
-// ═══════════════════════════════════════════════════════════════════════════════
 function startScheduler() {
   // Event reminders — every 6 hours (at 6am, 12pm, 6pm, midnight)
   cron.schedule('0 */6 * * *', () => {

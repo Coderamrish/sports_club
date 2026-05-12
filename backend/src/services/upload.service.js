@@ -4,6 +4,8 @@
  * Currently uses LOCAL disk storage (multer default).
  * Switch to S3 in production by setting AWS_* env vars
  * and uncommenting the S3 section below.
+ * 
+ * Prefer this approach currently
  */
 const multer = require('multer');
 const path   = require('path');
@@ -11,20 +13,20 @@ const fs     = require('fs');
 const { v4: uuidv4 } = require('uuid');
 const { AppError } = require('../utils/appError');
 
-// ─── Ensure uploads directory exists ──────────────────────────────────────
+// Ensure uploads directory exists 
 const UPLOAD_DIR = path.join(__dirname, '../../uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-// ─── Allowed types ─────────────────────────────────────────────────────────
+//  Allowed types
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png'];
 const ALLOWED_DOC_TYPES   = ['application/pdf'];
 const ALL_ALLOWED         = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOC_TYPES];
 
-// ─── Size limits ───────────────────────────────────────────────────────────
+// Size limits
 const IMAGE_MAX_SIZE = 1 * 1024 * 1024;  // 1 MB
 const PDF_MAX_SIZE   = 2 * 1024 * 1024;  // 2 MB
 
-// ─── Local disk storage ────────────────────────────────────────────────────
+// Local disk storage 
 const diskStorage = (folder) => multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(UPLOAD_DIR, folder);
@@ -39,7 +41,7 @@ const diskStorage = (folder) => multer.diskStorage({
   },
 });
 
-// ─── Create uploader ───────────────────────────────────────────────────────
+// Create uploader
 const createUploader = (folder, allowedTypes = ALL_ALLOWED, maxSize = PDF_MAX_SIZE) => {
   const fileFilter = (req, file, cb) => {
     if (allowedTypes.includes(file.mimetype)) {
@@ -58,12 +60,12 @@ const createUploader = (folder, allowedTypes = ALL_ALLOWED, maxSize = PDF_MAX_SI
   });
 };
 
-// ─── Pre-configured uploaders ──────────────────────────────────────────────
+// Pre-configured uploaders
 const athleteDocUpload  = createUploader('athletes/documents', ALL_ALLOWED,         PDF_MAX_SIZE);
 const profilePhotoUpload= createUploader('profile-photos',     ALLOWED_IMAGE_TYPES, IMAGE_MAX_SIZE);
 const coachDocUpload    = createUploader('coaches/documents',  ALL_ALLOWED,         PDF_MAX_SIZE);
 
-// ─── Delete local file ─────────────────────────────────────────────────────
+//Delete local file
 const deleteFile = (filePath) => {
   try {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
@@ -74,13 +76,13 @@ const deleteFile = (filePath) => {
   }
 };
 
-// ─── Get public URL for local file ────────────────────────────────────────
+//  Get public URL for local file
 const getFileUrl = (key) => {
   const baseUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5000}`;
   return `${baseUrl}/uploads/${key}`;
 };
 
-// ─── Multer error handler middleware ──────────────────────────────────────
+//Multer error handler middleware
 const handleMulterError = (err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {

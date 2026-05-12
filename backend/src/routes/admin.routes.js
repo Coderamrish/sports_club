@@ -9,22 +9,22 @@ const { requirePermission, requireAdminLevel, auditLog } = require('../middlewar
 // All admin routes: valid JWT + role=admin
 router.use(protect, restrictTo('admin'));
 
-// ── Self profile ──────────────────────────────────────────────────────────────
+// Self profile
 router.get('/me', adminAuthController.getAdminProfile);
 
-// ── Dashboard (real metrics) ──────────────────────────────────────────────────
+// Dashboard (real metrics)
 router.get('/dashboard',
   requirePermission('view_analytics'),
   adminManagementController.getDashboard
 );
 
-// ── Admin account management (super_admin only) ───────────────────────────────
+// Admin account management (super_admin only) 
 router.post('/admins',   requireAdminLevel('super_admin'), auditLog('create_admin'), adminAuthController.createAdmin);
 router.get('/admins',    requireAdminLevel('super_admin'),                           adminAuthController.listAdmins);
 router.patch('/admins/:id', requireAdminLevel('super_admin'), auditLog('update_admin'), adminAuthController.updateAdmin);
 router.delete('/admins/:id',requireAdminLevel('super_admin'), auditLog('deactivate_admin'), adminAuthController.deactivateAdmin);
 
-// ── Athlete management ────────────────────────────────────────────────────────
+//Athlete management
 router.get('/athletes',
   requirePermission('view_all_profiles'),
   adminManagementController.listAthletes
@@ -44,7 +44,7 @@ router.patch('/athletes/:id/documents/:docType',
   adminManagementController.reviewDocument
 );
 
-// ── Coach management ──────────────────────────────────────────────────────────
+//Coach management
 router.get('/coaches',
   requirePermission('view_all_profiles'),
   adminManagementController.listCoaches
@@ -58,7 +58,7 @@ router.patch('/coaches/:id/status',
   adminManagementController.updateCoachStatus
 );
 
-// ── Competition management ──────────────────────────────────────────────────
+//Competition management
 const competitionController = require('../controllers/competition.controller');
 router.post('/competitions',
   requirePermission('manage_competitions'),
@@ -93,7 +93,7 @@ router.patch('/competitions/registrations/:id/status',
   adminManagementController.updateRegistrationStatus
 );
 
-// ── Payment management ────────────────────────────────────────────────────────
+//Payment management
 const paymentController = require('../controllers/payment.controller');
 router.get('/payments',
   requirePermission('manage_payments'),
@@ -104,7 +104,7 @@ router.get('/payments/summary',
   paymentController.adminGetPaymentSummary
 );
 
-// ── Analytics & Export ────────────────────────────────────────────────────────
+//Analytics & Export 
 const analyticsController = require('../controllers/admin/adminAnalytics.controller');
 router.get('/analytics/overview',
   requirePermission('view_analytics'),

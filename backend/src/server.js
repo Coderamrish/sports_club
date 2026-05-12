@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB
 connectDB().then(() => {
   app.listen(PORT, () => {
-    logger.info(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    logger.info(` Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     // Start scheduled reminders (event/fee/doc alerts)
     startScheduler();
   });

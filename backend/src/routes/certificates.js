@@ -11,7 +11,7 @@ const sendCertificateEmail = require('../utils/sendCertificateEmail');
 const emailService = require('../services/email.service');
 const { protect, restrictTo } = require('../middleware/auth.middleware');
 
-// ─── ADMIN: Get all registrations for a competition (for issuing certificates) ──
+// ADMIN: Get all registrations for a competition (for issuing certificates)
 router.get('/admin/competition/:competitionId/registrations', protect, restrictTo('admin'), async (req, res) => {
   try {
     const { competitionId } = req.params;
@@ -38,7 +38,7 @@ router.get('/admin/competition/:competitionId/registrations', protect, restrictT
   }
 });
 
-// ─── ADMIN: Issue certificates & medals, update registrations, email users ────
+//ADMIN: Issue certificates & medals, update registrations, email users
 router.post('/admin/results', protect, restrictTo('admin'), async (req, res) => {
   try {
     const { competitionId, results } = req.body;
@@ -143,7 +143,7 @@ router.post('/admin/results', protect, restrictTo('admin'), async (req, res) => 
   }
 });
 
-// ─── ADMIN: Resend certificate email ──────────────────────────────────────────
+//ADMIN: Resend certificate emai
 router.post('/admin/resend-email/:registrationId', protect, restrictTo('admin'), async (req, res) => {
   try {
     const registration = await CompetitionRegistration.findById(req.params.registrationId)
@@ -179,7 +179,7 @@ router.post('/admin/resend-email/:registrationId', protect, restrictTo('admin'),
   }
 });
 
-// ─── ADMIN: Broadcast "Results Published" to all attendees ────────────────────
+// ADMIN: Broadcast "Results Published" to all attendees 
 router.post('/admin/broadcast-results/:competitionId', protect, restrictTo('admin'), async (req, res) => {
   try {
     const competition = await Competition.findById(req.params.competitionId);
@@ -212,7 +212,7 @@ router.post('/admin/broadcast-results/:competitionId', protect, restrictTo('admi
           html: `
             <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)">
               <div style="background:linear-gradient(135deg,#1a3c5e,#1565C0);padding:28px;color:white;text-align:center">
-                <h1 style="margin:0;font-size:28px">🏆 Results Are Out!</h1>
+                <h1 style="margin:0;font-size:28px">🏆 Results Are Out!  </h1>
                 <p style="margin:8px 0 0;opacity:.85;font-size:15px">${competition.title}</p>
               </div>
               <div style="padding:24px;color:#333">
@@ -226,8 +226,8 @@ router.post('/admin/broadcast-results/:competitionId', protect, restrictTo('admi
                 </div>
                 
                 <div style="background:#F3F6FF;border:1px solid #BBDEFB;border-radius:10px;padding:16px;margin:16px 0">
-                  <p style="margin:4px 0"><strong>📅 Date:</strong> ${formatDate(competition.date)}</p>
-                  <p style="margin:4px 0"><strong>📍 Venue:</strong> ${competition.venue || '—'}</p>
+                  <p style="margin:4px 0"><strong> 📅 Date:  </strong> ${formatDate(competition.date)}</p>
+                  <p style="margin:4px 0"><strong> 📍 Venue: </strong> ${competition.venue || '—'}</p>
                 </div>
                 
                 ${reg.certificateUrl
@@ -235,7 +235,7 @@ router.post('/admin/broadcast-results/:competitionId', protect, restrictTo('admi
                   : '<p style="text-align:center;color:#888">Certificate will be available for download from your dashboard shortly.</p>'
                 }
                 
-                <p>Congratulations and thank you for participating! 🎯</p>
+                <p>  Congratulations and thank you for participating! 🎯  </p>
               </div>
               <div style="background:#F8F9FA;padding:16px;text-align:center;font-size:12px;color:#999">
                 © ${new Date().getFullYear()} Sports Club Management System
@@ -262,7 +262,7 @@ router.post('/admin/broadcast-results/:competitionId', protect, restrictTo('admi
   }
 });
 
-// ─── USER: Get own history (competitions, medals, certificates, payments) ─────
+// USER: Get own history (competitions, medals, certificates, payments)
 router.get('/my-history', protect, async (req, res) => {
   try {
     // Get competition registrations
@@ -273,7 +273,6 @@ router.get('/my-history', protect, async (req, res) => {
     // Get payment history
     const payments = await Payment.find({ user: req.user._id })
       .sort({ createdAt: -1 });
-
     // Compute summary stats
     const totalCompetitions = registrations.length;
     const activeRegistrations = registrations.filter(r => r.status === 'Active' || r.status === 'Pending').length;
@@ -323,7 +322,7 @@ router.get('/my-history', protect, async (req, res) => {
   }
 });
 
-// ─── USER: Download certificate ──────────────────────────────────────────────
+// USER: Download certificate
 router.get('/download/:registrationId', protect, async (req, res) => {
   try {
     const registration = await CompetitionRegistration.findOne({

@@ -106,7 +106,7 @@ const coachProfileSlice = createSlice({
         state.isUploading = false;
         state.error       = action.payload?.message || 'Delete failed';
       });
-    // ── Logout cleanup ───────────────────────────────────────────────
+    //  Logout cleanup
     builder.addMatcher(
       (action) => action.type.startsWith('auth/logout') || action.type === 'auth/clearCredentials',
       (state) => {

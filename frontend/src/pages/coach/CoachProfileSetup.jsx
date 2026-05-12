@@ -29,7 +29,7 @@ import { logoutUser, selectCurrentUser } from '../../store/slices/authSlice';
 import { compressImage, validateFile } from '../../utils/fileCompression';
 import { initiatePayment } from '../../services/payment.service';
 
-// ─── Step Definitions ─────────────────────────────────────────────────────────
+// Step Definitions 
 const STEPS = [
   { label: 'Personal',    icon: <Person />,          short: 'Personal Details' },
   { label: 'Address',     icon: <Home />,             short: 'Address Details' },
@@ -52,7 +52,7 @@ const INDIAN_STATES = [
   'Tripura','Uttar Pradesh','Uttarakhand','West Bengal','Delhi',
 ];
 
-// ─── Custom Stepper Connector ─────────────────────────────────────────────────
+// Custom Stepper Connector
 const ColorConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: { top: 22 },
   [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}`]: {
@@ -85,7 +85,7 @@ function StepIconComponent(props) {
   );
 }
 
-// ─── Yup Schemas per step ─────────────────────────────────────────────────────
+// Yup Schemas per step 
 const schemas = {
   1: yup.object({
     dateOfBirth: yup.date().required('Date of birth is required').max(new Date(), 'Cannot be future date'),
@@ -106,7 +106,7 @@ const schemas = {
   }),
 };
 
-// ─── Reusable DocDropzone ─────────────────────────────────────────────────────
+// Reusable DocDropzone 
 function DocDropzone({ label, docType, currentDoc, onUpload, onDelete, isUploading, accept = 'any' }) {
   const [localLoading, setLocalLoading] = useState(false);
 
@@ -191,7 +191,7 @@ function DocDropzone({ label, docType, currentDoc, onUpload, onDelete, isUploadi
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+//  Main Component
 export default function CoachProfileSetup() {
   const dispatch   = useDispatch();
   const navigate   = useNavigate();
@@ -324,7 +324,7 @@ export default function CoachProfileSetup() {
   );
 }
 
-// ─── Step Content Router ──────────────────────────────────────────────────────
+// Step Content Router 
 function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, onDelete, onBack, onGoToDashboard }) {
   const dispatch = useDispatch();
   switch (step) {
@@ -337,7 +337,7 @@ function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, o
   }
 }
 
-// ─── Shared form wrapper ──────────────────────────────────────────────────────
+// Shared form wrapper
 function StepCard({ children, onBack, onNext, isSaving, isFirst, isLast, nextLabel }) {
   return (
     <Card>
@@ -356,7 +356,7 @@ function StepCard({ children, onBack, onNext, isSaving, isFirst, isLast, nextLab
   );
 }
 
-// ─── Step 1: Personal Details ─────────────────────────────────────────────────
+// Step 1: Personal Details 
 function Step1Personal({ profile, onSave, isSaving, onBack }) {
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[1]),
@@ -413,7 +413,7 @@ function Step1Personal({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 2: Address ──────────────────────────────────────────────────────────
+// Step 2: Address
 function Step2Address({ profile, onSave, isSaving, onBack }) {
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[2]),
@@ -457,7 +457,7 @@ function Step2Address({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 3: Club & Representation ───────────────────────────────────────────
+// Step 3: Club & Representation 
 function Step3Club({ profile, onSave, isSaving, onBack }) {
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[3]),
@@ -490,7 +490,7 @@ function Step3Club({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 4: Documents ────────────────────────────────────────────────────────
+// Step 4: Documents
 function Step4Documents({ profile, onSave, isSaving, isUploading, onUpload, onDelete, onBack }) {
   const docs = profile?.documents || {};
 
@@ -520,7 +520,7 @@ function Step4Documents({ profile, onSave, isSaving, isUploading, onUpload, onDe
   );
 }
 
-// ─── Step 5: Declaration & Done ──────────────────────────────────────────────
+// Step 5: Declaration & Done
 function Step5Declaration({ profile, onGoToDashboard, onBack, onRefresh }) {
   const isApproved = profile?.profileStatus === 'Approved';
   const [paying, setPaying] = useState(false);

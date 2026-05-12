@@ -12,7 +12,7 @@ const logger = require('../utils/logger');
 const generateReceipt = require('../utils/generateReceipt');
 const fs = require('fs');
 
-// ─── Razorpay instance (lazy, so missing keys in dev don't crash import) ───────
+//Razorpay instance (lazy, so missing keys in dev don't crash import)
 let razorpayInstance = null;
 const getRazorpay = () => {
   if (!razorpayInstance) {
@@ -27,14 +27,14 @@ const getRazorpay = () => {
   return razorpayInstance;
 };
 
-// ─── Helper: receipt id (max 40 chars for Razorpay) ───────────────────────────
+// Helper: receipt id (max 40 chars for Razorpay)
 const makeReceipt = (prefix, id) => `${prefix}_${String(id).slice(-16)}_${Date.now().toString().slice(-6)}`;
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// POST /api/payments/create-order
-// Body: { entityType, entityId }
-// Creates a Razorpay order and returns it to the frontend to open the checkout.
-// ═══════════════════════════════════════════════════════════════════════════════
+/*
+POST /api/payments/create-order
+Body: { entityType, entityId }
+Creates a Razorpay order and returns it to the frontend to open the checkout
+*/
 exports.createOrder = async (req, res, next) => {
   try {
     const { entityType, entityId } = req.body;
@@ -44,7 +44,7 @@ exports.createOrder = async (req, res, next) => {
 
     let amount, description, entity;
 
-    // ── Resolve entity & amount ──────────────────────────────────────────────
+    // Resolve entity & amount
     if (entityType === 'competition_registration') {
       entity = await CompetitionRegistration.findById(entityId)
         .populate('competition', 'title registrationFee');
@@ -81,7 +81,7 @@ exports.createOrder = async (req, res, next) => {
       return next(new AppError(`Invalid amount: ${amount}`, 400));
     }
 
-    // ── Create Razorpay order ────────────────────────────────────────────────
+    // Create Razorpay order 
     const razorpayOrder = await getRazorpay().orders.create({
       amount:   Math.round(amount * 100), // Razorpay works in paise
       currency: 'INR',
@@ -95,7 +95,7 @@ exports.createOrder = async (req, res, next) => {
       },
     });
 
-    // ── Save Payment doc ─────────────────────────────────────────────────────
+    // Save Payment doc 
     const payment = await Payment.create({
       user:            req.user._id,
       entityType,
@@ -127,11 +127,10 @@ exports.createOrder = async (req, res, next) => {
   }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
+
 // POST /api/payments/verify
 // Called by frontend after Razorpay checkout succeeds.
 // Verifies the signature, marks payment as paid, updates the entity.
-// ═══════════════════════════════════════════════════════════════════════════════
 exports.verifyPayment = async (req, res, next) => {
   try {
     const { razorpayOrderId, razorpayPaymentId, razorpaySignature, paymentDocId } = req.body;
@@ -139,7 +138,7 @@ exports.verifyPayment = async (req, res, next) => {
       return next(new AppError('Missing payment verification fields.', 400));
     }
 
-    // ── 1. Signature verification ────────────────────────────────────────────
+    // 1 Signature verification
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(`${razorpayOrderId}|${razorpayPaymentId}`)
@@ -150,7 +149,7 @@ exports.verifyPayment = async (req, res, next) => {
       return next(new AppError('Payment verification failed. Invalid signature.', 400));
     }
 
-    // ── 2. Find our Payment document ─────────────────────────────────────────
+    //2 Find our Payment document 
     const payment = await Payment.findById(paymentDocId);
     if (!payment) return next(new AppError('Payment record not found.', 404));
     if (payment.status === 'paid') {
@@ -158,14 +157,14 @@ exports.verifyPayment = async (req, res, next) => {
       return res.status(200).json({ success: true, message: 'Payment already confirmed.', data: payment });
     }
 
-    // ── 3. Update Payment doc ────────────────────────────────────────────────
+    // 3 Update Payment doc 
     payment.razorpayPaymentId = razorpayPaymentId;
     payment.razorpaySignature = razorpaySignature;
     payment.status            = 'paid';
     payment.paidAt            = new Date();
     await payment.save();
 
-    // ── 4. Update the entity that was paid for ───────────────────────────────
+    // 4. Update the entity that was paid for 
     let entityDoc, emailData;
     const user = await User.findById(payment.user);
 
@@ -222,7 +221,7 @@ exports.verifyPayment = async (req, res, next) => {
       };
     }
 
-    // ── 5. Send confirmation email ───────────────────────────────────────────
+    //5 Send confirmation email
     if (user) {
       try {
         await emailService.sendPaymentConfirmationEmail({
@@ -252,11 +251,10 @@ exports.verifyPayment = async (req, res, next) => {
   }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
+
 // POST /api/payments/webhook
 // Razorpay webhook endpoint — handles payment.failed events.
 // Verify the webhook signature using RAZORPAY_WEBHOOK_SECRET.
-// ═══════════════════════════════════════════════════════════════════════════════
 exports.handleWebhook = async (req, res) => {
   try {
     const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
@@ -318,10 +316,8 @@ exports.handleWebhook = async (req, res) => {
   }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // GET /api/payments/my-payments
 // Logged-in user's own payment history
-// ═══════════════════════════════════════════════════════════════════════════════
 exports.getMyPayments = async (req, res, next) => {
   try {
     const payments = await Payment.find({ user: req.user._id })
@@ -349,11 +345,9 @@ exports.getMyPayments = async (req, res, next) => {
     next(err);
   }
 };
-
-// ═══════════════════════════════════════════════════════════════════════════════
 // GET /api/admin/payments          — all payments with filters
 // GET /api/admin/payments/summary  — totals for dashboard
-// ═══════════════════════════════════════════════════════════════════════════════
+
 exports.adminGetAllPayments = async (req, res, next) => {
   try {
     const { status, entityType, page = 1, limit = 30, search } = req.query;
@@ -439,10 +433,9 @@ exports.adminGetPaymentSummary = async (req, res, next) => {
   }
 };
 
-// ═══════════════════════════════════════════════════════════════════════════════
 // GET /api/payments/receipt/:paymentId
 // Generate and download a PDF receipt for a paid payment
-// ═══════════════════════════════════════════════════════════════════════════════
+
 exports.downloadReceipt = async (req, res, next) => {
   try {
     const payment = await Payment.findOne({

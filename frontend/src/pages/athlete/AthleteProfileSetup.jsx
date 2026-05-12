@@ -30,7 +30,7 @@ import { logoutUser, selectCurrentUser } from '../../store/slices/authSlice';
 import { compressImage, formatFileSize, validateFile } from '../../utils/fileCompression';
 import { initiatePayment } from '../../services/payment.service';
 
-// ─── Step Definitions ─────────────────────────────────────────────────────────
+//Step Definitions
 const STEPS = [
   { label: 'Personal',    icon: <Person />,          short: 'Personal Details' },
   { label: 'Family',      icon: <FamilyRestroom />,   short: 'Parent / Guardian' },
@@ -42,7 +42,7 @@ const STEPS = [
   { label: 'Payment',     icon: <Payment />,          short: 'Payment' },
 ];
 
-// ─── Custom Stepper Connector ─────────────────────────────────────────────────
+// Custom Stepper Connector 
 const ColorConnector = styled(StepConnector)(({ theme }) => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: { top: 22 },
   [`&.${stepConnectorClasses.active} .${stepConnectorClasses.line}`]: {
@@ -75,7 +75,7 @@ function StepIconComponent(props) {
   );
 }
 
-// ─── Yup Schemas per step ─────────────────────────────────────────────────────
+// Yup Schemas per step 
 const schemas = {
   1: yup.object({
     dateOfBirth: yup.date().required('Date of birth is required').max(new Date(), 'Cannot be future date'),
@@ -108,7 +108,7 @@ const schemas = {
   }),
 };
 
-// ─── Reusable DocDropzone ─────────────────────────────────────────────────────
+// Reusable DocDropzone
 function DocDropzone({ label, docType, currentDoc, onUpload, onDelete, isUploading, accept = 'any' }) {
   const [localLoading, setLocalLoading] = useState(false);
 
@@ -196,7 +196,7 @@ function DocDropzone({ label, docType, currentDoc, onUpload, onDelete, isUploadi
   );
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// Main Component
 export default function AthleteProfileSetup() {
   const dispatch   = useDispatch();
   const navigate   = useNavigate();
@@ -339,7 +339,7 @@ export default function AthleteProfileSetup() {
   );
 }
 
-// ─── Step Content Router ──────────────────────────────────────────────────────
+// Step Content Router 
 function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, onDelete, onBack, onGoToDashboard }) {
   const dispatch = useDispatch();
   switch (step) {
@@ -355,7 +355,7 @@ function StepContent({ step, profile, onSave, isSaving, isUploading, onUpload, o
   }
 }
 
-// ─── Shared form wrapper ──────────────────────────────────────────────────────
+// shared form wrapper
 function StepCard({ children, onBack, onNext, isSaving, isFirst, isLast, nextLabel }) {
   return (
     <Card>
@@ -379,7 +379,7 @@ function StepCard({ children, onBack, onNext, isSaving, isFirst, isLast, nextLab
   );
 }
 
-// ─── Step 1: Personal Details ─────────────────────────────────────────────────
+//  Step 1: Personal Details 
 function Step1Personal({ profile, onSave, isSaving, onBack }) {
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[1]),
@@ -425,7 +425,7 @@ function Step1Personal({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 2: Parent / Guardian ────────────────────────────────────────────────
+// Step 2: Parent / Guardian 
 function Step2Family({ profile, onSave, isSaving, onBack }) {
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[2]),
@@ -468,7 +468,7 @@ function Step2Family({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 3: Address ──────────────────────────────────────────────────────────
+// Step 3: Address
 const INDIAN_STATES = [
   'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh','Goa','Gujarat',
   'Haryana','Himachal Pradesh','Jharkhand','Karnataka','Kerala','Madhya Pradesh',
@@ -584,7 +584,7 @@ function Step3Address({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 4: Club & Representation ───────────────────────────────────────────
+// Step 4: Club & Representation
 function Step4Club({ profile, onSave, isSaving, onBack }) {
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: yupResolver(schemas[4]),
@@ -625,7 +625,7 @@ function Step4Club({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 5: Competition Details ──────────────────────────────────────────────
+// Step 5: Competition Details
 const AGE_GROUPS = ['U-10','U-12','U-14','U-16','U-18','U-21','Senior','Masters'];
 
 function getAgeFromDOB(dob) {
@@ -718,7 +718,7 @@ function Step5Competition({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 6: Documents ────────────────────────────────────────────────────────
+//  Step 6: Documents 
 function Step6Documents({ profile, onSave, isSaving, isUploading, onUpload, onDelete, onBack }) {
   const docs = profile?.documents || {};
   const noc  = { club: profile?.nocClub, state: profile?.nocStateAssociation };
@@ -769,7 +769,7 @@ function Step6Documents({ profile, onSave, isSaving, isUploading, onUpload, onDe
   );
 }
 
-// ─── Step 7: Declaration ──────────────────────────────────────────────────────
+// Step 7: Declaration
 function Step7Declaration({ profile, onSave, isSaving, onBack }) {
   const [agreed, setAgreed] = useState(false);
   const [parentConsent, setParentConsent] = useState(false);
@@ -855,7 +855,7 @@ function Step7Declaration({ profile, onSave, isSaving, onBack }) {
   );
 }
 
-// ─── Step 8: Payment ──────────────────────────────────────────────────────────
+// Step 8: Payment 
 function Step8Payment({ profile, onGoToDashboard, onBack, onRefresh }) {
   const isApproved = profile?.registrationStatus === 'Approved';
   const [paying, setPaying] = useState(false);

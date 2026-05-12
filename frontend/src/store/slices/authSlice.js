@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/auth.service';
 
-// ─── Async Thunks ─────────────────────────────────────────────────────────────
+//Async Thunks
 
 export const registerUser = createAsyncThunk(
   'auth/register',
@@ -42,7 +42,7 @@ export const fetchCurrentUser = createAsyncThunk('auth/me', async (_, { rejectWi
   }
 });
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers
 
 function persistTokens(accessToken, refreshToken) {
   if (accessToken) sessionStorage.setItem('accessToken', accessToken);
@@ -53,7 +53,7 @@ function clearTokens() {
   sessionStorage.removeItem('refreshToken');
 }
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
+//  Slice 
 
 const authSlice = createSlice({
   name: 'auth',
@@ -92,7 +92,7 @@ const authSlice = createSlice({
   },
   extraReducers: (builder) => {
 
-    // ── Register ─────────────────────────────────────────────────────
+    //  Register
     builder
       .addCase(registerUser.pending,   (s) => { s.isLoading = true;  s.error = null; })
       .addCase(registerUser.fulfilled, (s, a) => {
@@ -102,7 +102,7 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected,  (s, a) => { s.isLoading = false; s.error = a.payload?.message || 'Registration failed'; });
 
-    // ── Verify Email ──────────────────────────────────────────────────
+    //  Verify Email
     builder
       .addCase(verifyEmail.pending,   (s) => { s.isLoading = true;  s.error = null; })
       .addCase(verifyEmail.fulfilled, (s, a) => {
@@ -117,7 +117,7 @@ const authSlice = createSlice({
       })
       .addCase(verifyEmail.rejected,  (s, a) => { s.isLoading = false; s.error = a.payload?.message || 'Verification failed'; });
 
-    // ── Login (athlete / coach / admin — unified) ─────────────────────
+    //  Login (athlete / coach / admin — unified)
     builder
       .addCase(loginUser.pending,   (s) => { s.isLoading = true;  s.error = null; })
       .addCase(loginUser.fulfilled, (s, a) => {
@@ -131,7 +131,7 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected,  (s, a) => { s.isLoading = false; s.error = a.payload?.message || 'Login failed'; });
 
-    // ── Logout ────────────────────────────────────────────────────────
+    //Logout
     builder
       .addCase(logoutUser.fulfilled, (s) => {
         s.user = null; s.accessToken = null; s.isAuthenticated = false;
@@ -143,7 +143,7 @@ const authSlice = createSlice({
         clearTokens();
       });
 
-    // ── Fetch Me ──────────────────────────────────────────────────────
+    //  Fetch Me 
     builder
       .addCase(fetchCurrentUser.pending,   (s) => { s.isLoading = true; })
       .addCase(fetchCurrentUser.fulfilled, (s, a) => {
@@ -172,7 +172,7 @@ export const {
   setPendingEmail, setRegistrationStep, clearError, updateUser,
 } = authSlice.actions;
 
-// ─── Selectors ────────────────────────────────────────────────────────────────
+//  Selectors
 export const selectCurrentUser        = (s) => s.auth.user;
 export const selectIsAuthenticated    = (s) => s.auth.isAuthenticated;
 export const selectAuthInitialized    = (s) => s.auth.authInitialized;

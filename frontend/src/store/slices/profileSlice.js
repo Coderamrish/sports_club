@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import profileService from '../../services/profile.service';
 
-// ─── Thunks ───────────────────────────────────────────────────────────────────
+// Thunks
 
 export const fetchAthleteProfile = createAsyncThunk(
   'profile/fetchAthlete',
@@ -35,7 +35,7 @@ export const deleteAthleteDoc = createAsyncThunk(
   }
 );
 
-// ─── Slice ────────────────────────────────────────────────────────────────────
+//  Slice
 
 const profileSlice = createSlice({
   name: 'profile',
@@ -60,7 +60,7 @@ const profileSlice = createSlice({
   },
   extraReducers: (builder) => {
 
-    // ── Fetch profile ─────────────────────────────────────────────────
+    // Fetch profile
     builder
       .addCase(fetchAthleteProfile.pending, (state) => {
         state.isLoading = true;
@@ -79,7 +79,7 @@ const profileSlice = createSlice({
         // Don't crash — leave athleteProfile as null, component handles it
       });
 
-    // ── Save step ─────────────────────────────────────────────────────
+    // Save step
     builder
       .addCase(saveProfileStep.pending, (state) => {
         state.isSaving = true;
@@ -98,7 +98,7 @@ const profileSlice = createSlice({
         state.error    = action.payload?.message || 'Failed to save step';
       });
 
-    // ── Upload doc ────────────────────────────────────────────────────
+    //  Upload doc
     builder
       .addCase(uploadAthleteDoc.pending,   (state) => { state.isUploading = true;  state.uploadError = null; })
       .addCase(uploadAthleteDoc.fulfilled, (state) => { state.isUploading = false; })
@@ -107,7 +107,7 @@ const profileSlice = createSlice({
         state.uploadError = action.payload?.message || 'Upload failed';
       });
 
-    // ── Delete doc ────────────────────────────────────────────────────
+    //Delete doc
     builder
       .addCase(deleteAthleteDoc.pending,   (state) => { state.isUploading = true;  state.uploadError = null; })
       .addCase(deleteAthleteDoc.fulfilled, (state) => { state.isUploading = false; })
@@ -115,7 +115,7 @@ const profileSlice = createSlice({
         state.isUploading = false;
         state.uploadError = action.payload?.message || 'Delete failed';
       });
-    // ── Logout cleanup ───────────────────────────────────────────────
+    // Logout cleanup 
     builder.addMatcher(
       (action) => action.type.startsWith('auth/logout') || action.type === 'auth/clearCredentials',
       (state) => {
@@ -130,7 +130,7 @@ const profileSlice = createSlice({
 
 export const { setCurrentStep, clearProfileError, updateLocalProfile } = profileSlice.actions;
 
-// ─── Selectors ────────────────────────────────────────────────────────────────
+// Selectors
 export const selectAthleteProfile     = (s) => s.profile.athleteProfile;
 export const selectProfileCurrentStep = (s) => s.profile.currentStep;
 export const selectProfileLoading     = (s) => s.profile.isLoading;
@@ -144,8 +144,7 @@ export const selectProfileCompletion = (s) => {
   if (!profile) return 0;
   // 9 total milestones: steps 1-8 + profile fee paid
   const step = profile.formStep ?? 1;
-  // If payment done (formStep=9) → 100%
-  // Otherwise base on formStep (max natural is 8 → 88%)
+  
   if (profile.profileFeeStatus === 'Paid') return 100;
   return Math.min(Math.round(((step - 1) / 8) * 100), 88);
 };

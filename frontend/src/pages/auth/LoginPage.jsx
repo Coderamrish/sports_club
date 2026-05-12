@@ -53,7 +53,7 @@ const ROLES = [
   },
 ];
 
-// ── Countdown component shown when locked ───────────────────────────────────
+// Countdown component shown when locked 
 function LockoutTimer({ seconds, onExpire }) {
   const [remaining, setRemaining] = useState(seconds);
   useEffect(() => {
@@ -73,7 +73,7 @@ function LockoutTimer({ seconds, onExpire }) {
   );
 }
 
-// ── Attempt indicator bar ────────────────────────────────────────────────────
+// Attempt indicator bar
 function AttemptsBar({ used, max, role }) {
   if (used === 0) return null;
   const pct = (used / max) * 100;

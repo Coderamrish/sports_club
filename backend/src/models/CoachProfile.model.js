@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const coachProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -10,14 +9,14 @@ const coachProfileSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ─── Professional Details ──────────────────────────────────────
+    // Professional Details 
     dateOfBirth: Date,
     gender: { type: String, enum: ['Male', 'Female', 'Other'] },
     specialization: [String], // e.g., ["Swimming", "Athletics"]
     experienceYears: { type: Number, min: 0 },
     bio: { type: String, maxlength: 1000 },
 
-    // ─── Certifications ────────────────────────────────────────────
+    //  Certifications 
     certifications: [
       {
         name: String,
@@ -29,7 +28,7 @@ const coachProfileSchema = new mongoose.Schema(
       },
     ],
 
-    // ─── Address ───────────────────────────────────────────────────
+    // Address
     address: {
       street: String,
       city: String,
@@ -38,11 +37,11 @@ const coachProfileSchema = new mongoose.Schema(
       country: { type: String, default: 'India' },
     },
 
-    // ─── Club Association ──────────────────────────────────────────
+    //Club Association 
     clubName: String,
     stateAssociation: String,
 
-    // ─── Documents ─────────────────────────────────────────────────
+    //  Documents
     documents: {
       profilePhoto: { url: String, key: String },
       idProof: {
@@ -53,7 +52,7 @@ const coachProfileSchema = new mongoose.Schema(
       certificationDoc: { url: String, key: String },
     },
 
-    // ─── Status ────────────────────────────────────────────────────
+    //  Status
     profileStatus: {
       type: String,
       enum: ['Incomplete', 'Pending Review', 'Approved', 'Rejected'],
@@ -63,7 +62,7 @@ const coachProfileSchema = new mongoose.Schema(
     // max 6: steps 1-5 + payment complete = 6
     formStep: { type: Number, default: 1 },
 
-    // ─── Profile Fee (one-time registration fee) ───────────────────
+    // Profile Fee (one-time registration fee)
     profileFeeStatus: {
       type: String,
       enum: ['Pending', 'Paid', 'Failed'],
@@ -72,7 +71,7 @@ const coachProfileSchema = new mongoose.Schema(
     profileFeePaidAt:        { type: Date, default: null },
     profileFeeTransactionId: { type: String, default: null },
 
-    // ─── Assigned Athletes (future feature) ───────────────────────
+    //Assigned Athletes (future feature) 
     assignedAthletes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }

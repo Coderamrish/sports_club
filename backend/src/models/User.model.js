@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-
 /**
  * Admin Permission Levels (RBAC):
  *   super_admin  → full access: create/delete other admins, all settings
@@ -26,15 +25,12 @@ const ADMIN_PERMISSIONS = {
 
 const userSchema = new mongoose.Schema(
   {
-    // ─── Core identity ─────────────────────────────────────────────
     role: {
       type: String,
       enum: ['athlete', 'coach', 'admin'],
       required: true,
       index: true,
     },
-
-    // ─── Admin sub-role & permissions ──────────────────────────────
     adminLevel: {
       type: String,
       enum: ['super_admin', 'admin', 'moderator'],
@@ -46,14 +42,14 @@ const userSchema = new mongoose.Schema(
       default: [],
       select: false,
     },
-    // Which admin created this admin account (audit trail)
+    // Which admin create)
     createdByAdmin: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,
     },
 
-    // ─── Auth ───────────────────────────────────────────────────────
+    // Auth
     email: {
       type: String,
       required: [true, 'Email is required'],
@@ -78,7 +74,7 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
-    // ─── Profile ────────────────────────────────────────────────────
+    // Profile
     fullName: {
       type: String,
       required: [true, 'Full name is required'],
@@ -86,20 +82,20 @@ const userSchema = new mongoose.Schema(
     },
     profilePhoto: { url: String, key: String },
 
-    // ─── Verification ────────────────────────────────────────────────
+    // Verification
     isEmailVerified:    { type: Boolean, default: false },
     isMobileVerified:   { type: Boolean, default: false },
     isProfileComplete:  { type: Boolean, default: false },
     isActive:           { type: Boolean, default: true, index: true },
 
-    // ─── OTP (transient — also lives in OTP collection) ────────────
+    // OTP (transient — also lives in OTP collection
     emailOtp: {
       code:      { type: String,  select: false },
       expiresAt: { type: Date,    select: false },
       attempts:  { type: Number,  default: 0,   select: false },
     },
 
-    // ─── Tokens ─────────────────────────────────────────────────────
+    // Tokens
     refreshToken:         { type: String, select: false },
     passwordResetToken:   { type: String, select: false },
     passwordResetExpires: { type: Date,   select: false },
@@ -113,7 +109,7 @@ const userSchema = new mongoose.Schema(
       lockedUntil: { type: Date,   default: null },
     },
 
-    // ─── Audit ──────────────────────────────────────────────────────
+    // Audit
     lastLoginAt: Date,
     lastLoginIp: String,
     deletedAt:   Date,
@@ -125,13 +121,13 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// ─── Indexes ────────────────────────────────────────────────────────────────
+//Indexes
 userSchema.index({ email: 1, role: 1 });
 userSchema.index({ mobile: 1, role: 1 });
 userSchema.index({ role: 1, isActive: 1 });
 userSchema.index({ createdAt: -1 });
 
-// ─── Pre-save: hash password + sync permissions ──────────────────────────────
+// Pre-save: hash password + sync permissions
 userSchema.pre('save', async function (next) {
   // 1. Hash password only when modified
   if (this.isModified('password')) {
@@ -152,8 +148,6 @@ userSchema.pre('save', async function (next) {
 
   next();
 });
-
-// ─── Methods ─────────────────────────────────────────────────────────────────
 
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
@@ -199,9 +193,6 @@ userSchema.methods.hasPermission = function (permission) {
 userSchema.methods.canManageAdmins = function () {
   return this.role === 'admin' && this.adminLevel === 'super_admin';
 };
-
-// ─── Virtuals ────────────────────────────────────────────────────────────────
-
 userSchema.virtual('isFullyVerified').get(function () {
   return this.isEmailVerified && this.isMobileVerified;
 });
@@ -211,7 +202,6 @@ userSchema.virtual('adminLevelLabel').get(function () {
   return labels[this.adminLevel] || null;
 });
 
-// ─── Statics ─────────────────────────────────────────────────────────────────
 
 /** Get all permissions for a given adminLevel */
 userSchema.statics.getPermissionsForLevel = function (level) {

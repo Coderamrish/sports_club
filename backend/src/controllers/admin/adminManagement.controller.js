@@ -7,9 +7,8 @@ const CompetitionRegistration = require('../../models/CompetitionRegistration.mo
 const { AppError }    = require('../../utils/appError');
 const { sendProfileStatusEmail, sendRegistrationApprovalEmail } = require('../../services/email.service');
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/dashboard
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.getDashboard = async (req, res, next) => {
   try {
     const today = new Date();
@@ -102,9 +101,8 @@ exports.getDashboard = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/athletes  — list with filters + pagination
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.listAthletes = async (req, res, next) => {
   try {
     const {
@@ -170,10 +168,8 @@ exports.listAthletes = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/athletes/:id  — single athlete detail
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.getAthlete = async (req, res, next) => {
   try {
     const profile = await AthleteProfile.findOne({ user: req.params.id })
@@ -188,9 +184,8 @@ exports.getAthlete = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  PATCH /api/admin/athletes/:id/status  — approve / reject registration
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.updateAthleteStatus = async (req, res, next) => {
   try {
     const { status, adminNotes } = req.body;
@@ -231,11 +226,8 @@ exports.updateAthleteStatus = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  PATCH /api/admin/athletes/:id/documents/:docType
 //  Approve or reject a specific document
-// ─────────────────────────────────────────────────────────────────────────────
 exports.reviewDocument = async (req, res, next) => {
   try {
     const { id, docType } = req.params;
@@ -277,9 +269,7 @@ exports.reviewDocument = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/coaches  — list coaches
-// ─────────────────────────────────────────────────────────────────────────────
 exports.listCoaches = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, status, search, specialization } = req.query;
@@ -328,9 +318,7 @@ exports.listCoaches = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/coaches/:id  — single coach detail
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getCoach = async (req, res, next) => {
   try {
     const profile = await CoachProfile.findOne({ user: req.params.id })
@@ -343,10 +331,8 @@ exports.getCoach = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  PATCH /api/admin/coaches/:id/status
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.updateCoachStatus = async (req, res, next) => {
   try {
     const { status } = req.body;
@@ -374,10 +360,7 @@ exports.updateCoachStatus = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  Competition Registrations Management
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getCompetitionRegistrations = async (req, res, next) => {
   try {
     const { competitionId } = req.params;
@@ -417,7 +400,6 @@ exports.updateRegistrationStatus = async (req, res, next) => {
         paymentStatus:    reg.paymentStatus,
       }).catch(() => {}); // fire-and-forget
     }
-
     res.status(200).json({ success: true, message: 'Registration updated successfully.', data: reg });
   } catch (err) {
     next(err);

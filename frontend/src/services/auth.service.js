@@ -48,7 +48,7 @@ const authService = {
     return response.data;
   },
 
-  // ── Debounced availability checks ──────────────────────────────────
+  // Debounced availability checks 
   checkEmailAvailability: async (email) => {
     const response = await api.post('/auth/check/email', { email });
     return response.data;

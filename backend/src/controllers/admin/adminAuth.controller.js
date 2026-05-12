@@ -7,9 +7,8 @@ const { resetLoginLimit } = require('../../middleware/rateLimiter');
 const bcrypt = require('bcryptjs');
 const logger = require('../../utils/logger');
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  ADMIN LOGIN
-// ─────────────────────────────────────────────────────────────────────────────
+
 
 /**
  * POST /api/auth/admin/login
@@ -70,9 +69,8 @@ exports.adminLogin = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 //  CREATE ADMIN  (super_admin only)
-// ─────────────────────────────────────────────────────────────────────────────
 
 /**
  * POST /api/admin/admins
@@ -109,7 +107,7 @@ exports.createAdmin = async (req, res, next) => {
       password,
       role: 'admin',
       adminLevel,
-      isEmailVerified: true,  // Admin accounts are pre-verified by super admin
+      isEmailVerified: true,  // Admin accounts are pre-verified
       isActive: true,
       createdByAdmin: creator._id,
     });
@@ -139,9 +137,7 @@ exports.createAdmin = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  LIST ADMINS  (super_admin only)
-// ─────────────────────────────────────────────────────────────────────────────
 
 exports.listAdmins = async (req, res, next) => {
   try {
@@ -183,9 +179,7 @@ exports.listAdmins = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  UPDATE ADMIN  (super_admin only)
-// ─────────────────────────────────────────────────────────────────────────────
 
 exports.updateAdmin = async (req, res, next) => {
   try {
@@ -221,9 +215,8 @@ exports.updateAdmin = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 //  DEACTIVATE ADMIN  (super_admin only)
-// ─────────────────────────────────────────────────────────────────────────────
 
 exports.deactivateAdmin = async (req, res, next) => {
   try {
@@ -256,9 +249,7 @@ exports.deactivateAdmin = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET ADMIN PROFILE  (self)
-// ─────────────────────────────────────────────────────────────────────────────
 
 exports.getAdminProfile = async (req, res, next) => {
   try {
@@ -282,9 +273,8 @@ exports.getAdminProfile = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 //  EMAIL HELPER
-// ─────────────────────────────────────────────────────────────────────────────
 
 async function sendAdminWelcomeEmail({ to, fullName, adminLevel, creatorName, password }) {
   const levelLabels = { admin: 'Admin', moderator: 'Moderator' };

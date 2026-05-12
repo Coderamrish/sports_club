@@ -1,8 +1,6 @@
 const { AppError } = require('../utils/appError');
-
 /**
  * requirePermission(...perms)
- *
  * Usage:
  *   router.delete('/user/:id', protect, restrictTo('admin'), requirePermission('manage_athletes'), handler)
  *
@@ -35,7 +33,6 @@ const requirePermission = (...permissions) => (req, res, next) => {
 
 /**
  * requireAdminLevel(...levels)
- *
  * Usage:
  *   requireAdminLevel('super_admin')           — only super admins
  *   requireAdminLevel('super_admin', 'admin')  — super + admin, not moderator

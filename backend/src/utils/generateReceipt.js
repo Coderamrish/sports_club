@@ -36,27 +36,27 @@ async function generateReceipt({
         : new Date().toLocaleDateString('en-IN');
       const formattedAmount = `₹${Number(amount).toLocaleString('en-IN')}`;
 
-      // ── Header Band ──────────────────────────────────────────────
+      // Header Band
       doc.rect(0, 0, 595.28, 100).fill('#1565C0');
       doc.fontSize(24).fillColor('#FFFFFF').font('Helvetica-Bold').text('PAYMENT RECEIPT', 50, 30);
       doc.fontSize(11).fillColor('rgba(255,255,255,0.8)').font('Helvetica').text('Sports Club Management System', 50, 60);
       doc.fontSize(10).text(`Receipt No: ${receiptNo || fileName.replace('.pdf', '')}`, 350, 35, { align: 'right', width: 200 });
       doc.text(`Date: ${formattedDate}`, 350, 55, { align: 'right', width: 200 });
 
-      // ── Status Badge ─────────────────────────────────────────────
+      //  Status Badge
       doc.roundedRect(230, 85, 135, 30, 15).fill('#2E7D32');
       doc.fontSize(13).fillColor('#FFFFFF').font('Helvetica-Bold').text('✓ PAYMENT SUCCESSFUL', 240, 92, { width: 115, align: 'center' });
 
-      // ── Bill To ──────────────────────────────────────────────────
+      // Bill To
       doc.fillColor('#333333').font('Helvetica-Bold').fontSize(11).text('BILLED TO:', 50, 140);
       doc.font('Helvetica').fontSize(11).fillColor('#555555');
       doc.text(userName || '—', 50, 158);
       doc.text(userEmail || '—', 50, 174);
 
-      // ── Horizontal Rule ──────────────────────────────────────────
+      //Horizontal Rule
       doc.moveTo(50, 200).lineTo(545, 200).strokeColor('#E0E0E0').lineWidth(1).stroke();
 
-      // ── Payment Details Table ────────────────────────────────────
+      //Payment Details Table
       const tableTop = 220;
       const col1 = 50, col2 = 340;
 
@@ -77,16 +77,16 @@ async function generateReceipt({
       doc.font('Helvetica').fontSize(9).fillColor('#999999');
       doc.text(entityType === 'profile_registration' ? 'Profile Registration Fee' : 'Competition Registration Fee', col1 + 10, rowY + 18);
 
-      // ── Divider ──────────────────────────────────────────────────
+      // Divider
       doc.moveTo(col1, rowY + 42).lineTo(545, rowY + 42).strokeColor('#E0E0E0').lineWidth(1).stroke();
 
-      // ── Total ────────────────────────────────────────────────────
+      // Total
       const totalY = rowY + 55;
       doc.rect(col2 + 30, totalY - 5, 165, 30).fill('#1565C0');
       doc.font('Helvetica-Bold').fontSize(13).fillColor('#FFFFFF');
       doc.text(`TOTAL: ${formattedAmount}`, col2 + 40, totalY + 2, { width: 145, align: 'center' });
 
-      // ── Transaction Details ──────────────────────────────────────
+      //Transaction Details
       const detailY = totalY + 55;
       doc.fillColor('#333333').font('Helvetica-Bold').fontSize(11).text('TRANSACTION DETAILS', col1, detailY);
 
@@ -104,7 +104,7 @@ async function generateReceipt({
         doc.font('Helvetica-Bold').fontSize(9).fillColor('#555555').text(value, col2 - 60, y);
       });
 
-      // ── Footer ───────────────────────────────────────────────────
+      // Footer
       const footerY = 680;
       doc.moveTo(50, footerY).lineTo(545, footerY).strokeColor('#E0E0E0').lineWidth(1).stroke();
       doc.font('Helvetica').fontSize(8).fillColor('#BBBBBB');

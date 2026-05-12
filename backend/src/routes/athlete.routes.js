@@ -7,11 +7,11 @@ const athleteProfileController = require('../controllers/athlete/athleteProfile.
 // All athlete routes: must be logged in, email verified, role=athlete
 router.use(protect, requireEmailVerified, restrictTo('athlete'));
 
-// ── Profile ──────────────────────────────────────────────────────────────────
+// Profile
 router.get('/profile',             athleteProfileController.getProfile);
 router.patch('/profile/step/:step', athleteProfileController.updateProfileStep);
 
-// ── Document uploads ─────────────────────────────────────────────────────────
+// Document uploads
 // Single document types
 router.post(
   '/profile/documents/:docType',
@@ -26,7 +26,7 @@ router.delete(
   athleteProfileController.deleteDocument
 );
 
-// ── Competitions ─────────────────────────────────────────────────────────────
+//Competitions
 const compRegController = require('../controllers/competitionRegistration.controller');
 router.get('/competitions', compRegController.getMyRegistrations);
 router.post('/competitions/register', compRegController.registerForCompetition);

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const athleteProfileSchema = new mongoose.Schema(
   {
     user: {
@@ -10,7 +9,7 @@ const athleteProfileSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ─── Step 1: Personal Details ──────────────────────────────────
+    // Step 1: Personal Details
     dateOfBirth: { type: Date, required: false },
     age: { type: Number }, // Auto-calculated from DOB
     gender: {
@@ -22,7 +21,7 @@ const athleteProfileSchema = new mongoose.Schema(
       enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
     },
 
-    // ─── Step 2: Parent/Guardian ───────────────────────────────────
+    // Step 2: Parent/Guardian 
     fatherName: String,
     motherName: String,
     guardianName: String,
@@ -36,7 +35,7 @@ const athleteProfileSchema = new mongoose.Schema(
       trim: true,
     },
 
-    // ─── Step 3: Address ───────────────────────────────────────────
+    //Step 3: Address
     address: {
       street: String,
       landmark: String,
@@ -47,7 +46,7 @@ const athleteProfileSchema = new mongoose.Schema(
       country: { type: String, default: 'India' },
     },
 
-    // ─── Step 4: Club / Representation ────────────────────────────
+    //  Step 4: Club / Representation
     clubName: String,
     stateRepresentation: String,
     districtRepresentation: String,
@@ -64,7 +63,7 @@ const athleteProfileSchema = new mongoose.Schema(
       status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
     },
 
-    // ─── Step 5: Competition Details ──────────────────────────────
+    //Step 5: Competition Details
     ageGroup: {
       type: String,
       enum: ['U-10', 'U-12', 'U-14', 'U-16', 'U-18', 'U-21', 'Senior', 'Masters'],
@@ -74,7 +73,7 @@ const athleteProfileSchema = new mongoose.Schema(
       enum: ['Beginner', 'Intermediate', 'Advanced'],
     },
 
-    // ─── Step 6: Documents ─────────────────────────────────────────
+    //  Step 6: Documents
     documents: {
       passportPhoto: {
         url: String,
@@ -119,7 +118,7 @@ const athleteProfileSchema = new mongoose.Schema(
       },
     },
 
-    // ─── Insurance ─────────────────────────────────────────────────
+    //  Insurance
     insurance: {
       isRequired: { type: Boolean, default: false },
       providerName: String,
@@ -137,14 +136,14 @@ const athleteProfileSchema = new mongoose.Schema(
       },
     },
 
-    // ─── Registration Status ──────────────────────────────────────
+    // Registration Status
     registrationStatus: {
       type: String,
       enum: ['Incomplete', 'Pending Review', 'Approved', 'Rejected'],
       default: 'Incomplete',
     },
 
-    // ─── Profile Fee (one-time registration fee) ───────────────────
+    // Profile Fee (one-time registration fee)
     profileFeeStatus: {
       type: String,
       enum: ['Pending', 'Paid', 'Failed'],
@@ -153,7 +152,7 @@ const athleteProfileSchema = new mongoose.Schema(
     profileFeePaidAt:        { type: Date, default: null },
     profileFeeTransactionId: { type: String, default: null },
 
-    // ─── Linked Competitions ──────────────────────────────────────
+    // Linked Competitions
     competitions: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -161,12 +160,12 @@ const athleteProfileSchema = new mongoose.Schema(
       },
     ],
 
-    // ─── Admin Verification ────────────────────────────────────────
+    // Admin Verification
     adminNotes: String,
     verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     verifiedAt: Date,
 
-    // ─── Form Step Progress ───────────────────────────────────────
+    // Form Step Progress
     // max 9: steps 1-8 + payment complete = 9
     formStep: { type: Number, default: 1, min: 1, max: 9 },
   },
@@ -177,24 +176,25 @@ const athleteProfileSchema = new mongoose.Schema(
   }
 );
 
-// ─── Virtual: Age Calculation ─────────────────────────────────────────
-athleteProfileSchema.virtual('calculatedAge').get(function () {
-  if (!this.dateOfBirth) return null;
-  const today = new Date();
-  const birth = new Date(this.dateOfBirth);
+//  Virtual: Age Calculation 
+
+           athleteProfileSchema.virtual('calculatedAge').get(function () {
+           if (!this.dateOfBirth) return null;
+       const today = new Date();
+       const birth = new Date(this.dateOfBirth);
   let age = today.getFullYear() - birth.getFullYear();
   const m = today.getMonth() - birth.getMonth();
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
   return age;
 });
 
-// ─── Virtual: Insurance Expired ──────────────────────────────────────
+//  Virtual: Insurance Expired
 athleteProfileSchema.virtual('isInsuranceExpired').get(function () {
   if (!this.insurance?.validTill) return null;
   return new Date(this.insurance.validTill) < new Date();
 });
 
-// ─── Pre-save: Auto-set age and insurance status ──────────────────────
+// Pre-save: Auto-set age and insurance status
 athleteProfileSchema.pre('save', function (next) {
   // Auto-calculate age from DOB
   if (this.dateOfBirth) {
@@ -216,7 +216,7 @@ athleteProfileSchema.pre('save', function (next) {
   next();
 });
 
-// ─── Indexes ─────────────────────────────────────────────────────────
+// Indexes 
 athleteProfileSchema.index({ 'address.state': 1 });
 athleteProfileSchema.index({ ageGroup: 1, skillLevel: 1 });
 athleteProfileSchema.index({ registrationStatus: 1 });

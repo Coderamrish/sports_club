@@ -4,15 +4,9 @@ const CoachProfile            = require('../../models/CoachProfile.model');
 const Competition             = require('../../models/Competition.model');
 const CompetitionRegistration = require('../../models/CompetitionRegistration.model');
 const Payment                 = require('../../models/payment.model');
-// ─────────────────────────────────────────────────────────────────────────────
-//  GET /api/admin/analytics/overview
-//  Full analytics: competitions, payments, athletes, coaches, certificates
-// ─────────────────────────────────────────────────────────────────────────────
 exports.getAnalyticsOverview = async (req, res, next) => {
   try {
     const now = new Date();
-
-    // ── Competition analytics ──────────────────────────────────────────────────
     const allCompetitions = await Competition.find().lean();
     const competitionIds  = allCompetitions.map(c => c._id);
 
@@ -64,7 +58,7 @@ exports.getAnalyticsOverview = async (req, res, next) => {
       };
     });
 
-    // ── Sport/Category breakdown ───────────────────────────────────────────────
+    // ── Sport/Category breakdown
     const sportBreakdown = {};
     for (const comp of competitionData) {
       const cats = comp.categories.length ? comp.categories : ['Uncategorized'];
@@ -78,7 +72,7 @@ exports.getAnalyticsOverview = async (req, res, next) => {
       });
     }
 
-    // ── Payment analytics ──────────────────────────────────────────────────────
+    // ── Payment analytics
     const paymentSummary = await Payment.aggregate([
       {
         $group: {
@@ -108,7 +102,7 @@ exports.getAnalyticsOverview = async (req, res, next) => {
       { $sort: { '_id.year': 1, '_id.month': 1 } }
     ]);
 
-    // ── Athlete analytics ──────────────────────────────────────────────────────
+    // ── Athlete analytics 
     const athleteStatusBreakdown = await AthleteProfile.aggregate([
       { $group: { _id: '$registrationStatus', count: { $sum: 1 } } }
     ]);
@@ -124,7 +118,7 @@ exports.getAnalyticsOverview = async (req, res, next) => {
       { $sort: { count: -1 } }
     ]);
 
-    // ── Coach analytics ────────────────────────────────────────────────────────
+    //  Coach analytic
     const coachStatusBreakdown = await CoachProfile.aggregate([
       { $group: { _id: '$profileStatus', count: { $sum: 1 } } }
     ]);
@@ -133,8 +127,7 @@ exports.getAnalyticsOverview = async (req, res, next) => {
       { $group: { _id: '$specialization', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
     ]);
-
-    // ── Certificate & Results ──────────────────────────────────────────────────
+// certificate & result
     const certStats = await CompetitionRegistration.aggregate([
       {
         $group: {
@@ -188,9 +181,8 @@ exports.getAnalyticsOverview = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/admin/analytics/export  — CSV export for different entities
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.exportAnalyticsCSV = async (req, res, next) => {
   try {
     const { type = 'registrations' } = req.query;
@@ -361,10 +353,9 @@ exports.exportAnalyticsCSV = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  PATCH /api/admin/analytics/registrations/:id/result
 //  Assign medal + certificate URL to a registration
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.updateRegistrationResult = async (req, res, next) => {
   try {
     const { id } = req.params;

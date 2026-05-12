@@ -6,6 +6,8 @@
  *  1. createOrder()  → backend creates Razorpay order, returns orderId + keyId
  *  2. openCheckout() → loads Razorpay JS SDK, opens the payment modal
  *  3. verifyPayment()→ on success, backend verifies signature and marks paid
+ * 
+ * NOTE: read it for clear understanding
  */
 import api from './api';
 

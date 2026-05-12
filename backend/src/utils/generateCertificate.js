@@ -1,7 +1,6 @@
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
-
 /**
  * Generates a PDF certificate and saves it locally.
  * Returns the file path and fileName.
@@ -10,10 +9,8 @@ async function generateCertificate({ userName, competitionName, competitionDate,
   return new Promise((resolve, reject) => {
     try {
       const doc = new PDFDocument({ size: 'A4', layout: 'landscape' });
-
       const fileName = `cert_${Date.now()}_${userName.replace(/\s+/g, '_')}.pdf`;
       const outputDir = path.join(__dirname, '../../uploads/certificates');
-      
       // Ensure directory exists
       if (!fs.existsSync(outputDir)) {
         fs.mkdirSync(outputDir, { recursive: true });

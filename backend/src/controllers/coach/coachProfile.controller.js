@@ -3,7 +3,7 @@ const { AppError } = require('../../utils/appError');
 const { getFileUrl, deleteFile } = require('../../services/upload.service');
 const path = require('path');
 
-// ─── GET /api/coaches/profile ─────────────────────────────────────────────
+//  GET /api/coaches/profile 
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await CoachProfile.findOne({ user: req.user._id })
@@ -17,7 +17,7 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-// ─── PATCH /api/coaches/profile ───────────────────────────────────────────
+// PATCH /api/coaches/profile
 exports.updateProfile = async (req, res, next) => {
   try {
     const {
@@ -57,7 +57,7 @@ exports.updateProfile = async (req, res, next) => {
   }
 };
 
-// ─── PATCH /api/coaches/profile/step/:step ────────────────────────────────
+// PATCH /api/coaches/profile/step/:step 
 exports.updateProfileStep = async (req, res, next) => {
   try {
     const stepNum = parseInt(req.params.step, 10);
@@ -131,7 +131,7 @@ exports.updateProfileStep = async (req, res, next) => {
   }
 };
 
-// ─── POST /api/coaches/profile/documents/:docType ────────────────────────
+//  POST /api/coaches/profile/documents/:docType
 exports.uploadDocument = async (req, res, next) => {
   try {
     const { docType } = req.params;
@@ -163,7 +163,7 @@ exports.uploadDocument = async (req, res, next) => {
   }
 };
 
-// ─── DELETE /api/coaches/profile/documents/:docType ──────────────────────
+//  DELETE /api/coaches/profile/documents/:docType 
 exports.deleteDocument = async (req, res, next) => {
   try {
     const { docType } = req.params;

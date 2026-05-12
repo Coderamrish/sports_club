@@ -20,7 +20,6 @@ const loadRazorpayScript = () =>
     document.body.appendChild(script);
   });
 
-// ═══════════════════════════════════════════════════════════════════════════════
 /**
  * initiatePayment
  *
@@ -98,13 +97,13 @@ export const initiatePayment = async ({ entityType, entityId, description, onSuc
   }
 };
 
-// ── Get user's payment history ────────────────────────────────────────────────
+// Get user's payment history
 export const getMyPayments = async () => {
   const { data } = await api.get('/payments/my-payments');
   return data.data;
 };
 
-// ── Admin: get all payments ───────────────────────────────────────────────────
+//Admin: get all payments
 export const adminGetPayments = async (params = {}) => {
   const { data } = await api.get('/admin/payments', { params });
   return data.data;

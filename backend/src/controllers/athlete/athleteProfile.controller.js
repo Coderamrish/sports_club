@@ -4,9 +4,9 @@ const { AppError } = require('../../utils/appError');
 const { getFileUrl, deleteFile } = require('../../services/upload.service');
 const path = require('path');
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 //  GET /api/athletes/profile
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await AthleteProfile.findOne({ user: req.user._id })
@@ -25,7 +25,6 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  PATCH /api/athletes/profile/step/:step
 //  Step 1 – Personal Details
 //  Step 2 – Parent / Guardian
@@ -35,7 +34,7 @@ exports.getProfile = async (req, res, next) => {
 //  Step 6 – Document Upload (handled separately via upload routes)
 //  Step 7 – Declaration (boolean flag)
 //  Step 8 – Payment (stub — returns payment intent)
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.updateProfileStep = async (req, res, next) => {
   try {
     const stepNum = parseInt(req.params.step, 10);
@@ -78,12 +77,11 @@ exports.updateProfileStep = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  POST /api/athletes/profile/documents/:docType
-//  docType: passportPhoto | aadhaarCard | birthCertificate | schoolBonafide |
-//           medicalFitness | nocClub | nocStateAssociation | achievementCert
-// ─────────────────────────────────────────────────────────────────────────────
+/*
+ POST /api/athletes/profile/documents/:docType
+  docType: passportPhoto | aadhaarCard | birthCertificate | schoolBonafide |
+          medicalFitness | nocClub | nocStateAssociation | achievementCert
+*/
 exports.uploadDocument = async (req, res, next) => {
   try {
     const { docType } = req.params;
@@ -139,10 +137,8 @@ exports.uploadDocument = async (req, res, next) => {
     next(err);
   }
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  DELETE /api/athletes/profile/documents/:docType
-// ─────────────────────────────────────────────────────────────────────────────
+
 exports.deleteDocument = async (req, res, next) => {
   try {
     const { docType } = req.params;
@@ -165,9 +161,7 @@ exports.deleteDocument = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  Helpers
-// ─────────────────────────────────────────────────────────────────────────────
 
 function buildStepUpdate(step, body) {
   switch (step) {

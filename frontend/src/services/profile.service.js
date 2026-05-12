@@ -1,7 +1,6 @@
 import api from './api';
-
 const profileService = {
-  // ── Athlete ────────────────────────────────────────────────────────────────
+  //  Athlete 
   getAthleteProfile: async () => {
     const res = await api.get('/athletes/profile');
     return res.data;
@@ -28,7 +27,7 @@ const profileService = {
     return res.data;
   },
 
-  // ── Coach ──────────────────────────────────────────────────────────────────
+  //  Coach 
   getCoachProfile: async () => {
     const res = await api.get('/coaches/profile');
     return res.data;

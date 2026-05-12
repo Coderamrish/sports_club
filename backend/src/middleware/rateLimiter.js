@@ -1,23 +1,23 @@
 /**
- * ══════════════════════════════════════════════════════════════
- *  SLIDING WINDOW RATE LIMITER  —  True Log-based Algorithm
- * ══════════════════════════════════════════════════════════════
- *
- *  Algorithm: Sliding Window Log
- *  ─────────────────────────────
- *  Stores an array of actual request timestamps per key and evicts
- *  any timestamp older than the window on every check.
- *
- *  Example (window=5min, max=5):
- *    t=0:00 → req1 [0]          remaining=4
- *    t=4:59 → req5 [0..299000]  remaining=0  BLOCKED
- *    t=5:01 → req6 [60..301000] remaining=4  t=0 evicted → ALLOWED
- *
- *  Limits:
- *    login       → 5 attempts / 5 min  (per IP+email)
- *    signup      → 5 attempts / 5 min  (per IP)
- *    admin_login → 3 attempts / 5 min  (stricter)
- *    global IP   → 20 attempts / 5 min (all routes combined)
+ SLIDING WINDOW RATE LIMITER  —  True Log-based Algorithm
+
+  Algorithm: Sliding Window Log
+ 
+ Stores an array of actual request timestamps per key and evicts
+  any timestamp older than the window on every check.
+ 
+   Example (window=5min, max=5):
+    t=0:00 → req1 [0]          remaining=4
+    t=4:59 → req5 [0..299000]  remaining=0  BLOCKED
+   t=5:01 → req6 [60..301000] remaining=4  t=0 evicted → ALLOWED
+ 
+  Limits:
+   login       → 5 attempts / 5 min  (per IP+email)
+    signup      → 5 attempts / 5 min  (per IP)
+    admin_login → 3 attempts / 5 min  (stricter)
+    global IP   → 20 attempts / 5 min (all routes combined)
+
+  NOTE :-   Please prefer this to understand it mesage to the techincal teeam do prefer it 
  */
 
 const WINDOW_MS       = 5 * 60 * 1000;  // 5 minutes

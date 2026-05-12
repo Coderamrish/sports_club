@@ -8,7 +8,6 @@ const mongoose = require('mongoose');
  */
 const paymentSchema = new mongoose.Schema(
   {
-    // ─── Who paid ──────────────────────────────────────────────────────────────
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -16,7 +15,6 @@ const paymentSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ─── What was paid for ──────────────────────────────────────────────────────
     // entityType: 'competition_registration' | 'profile_registration'
     entityType: {
       type: String,
@@ -30,16 +28,16 @@ const paymentSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ─── Amount ─────────────────────────────────────────────────────────────────
+    // Amount
     amount: { type: Number, required: true },       // in INR (not paise)
     currency: { type: String, default: 'INR' },
 
-    // ─── Razorpay IDs ───────────────────────────────────────────────────────────
+    // Razorpay IDs
     razorpayOrderId:   { type: String, required: true, unique: true, index: true },
     razorpayPaymentId: { type: String, default: null, index: true },
     razorpaySignature: { type: String, default: null },
 
-    // ─── Status ─────────────────────────────────────────────────────────────────
+    // Status 
     status: {
       type: String,
       enum: ['created', 'paid', 'failed', 'refunded'],
@@ -47,7 +45,6 @@ const paymentSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ─── Meta ───────────────────────────────────────────────────────────────────
     description: { type: String },          // e.g. "Registration fee - Kankinara T20"
     failureReason: { type: String },
     paidAt: { type: Date },

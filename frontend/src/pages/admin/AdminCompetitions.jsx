@@ -59,7 +59,7 @@ export default function AdminCompetitions() {
 
   useEffect(() => { fetchCompetitions(); }, []);
 
-  // ── Create ──────────────────────────────────────────────────────────────────
+  // Create
   const handleCreate = async () => {
     if (!formData.title || !formData.date || !formData.venue || !formData.deadline) {
       toast.error('Title, Date, Venue and Deadline are required');
@@ -85,7 +85,7 @@ export default function AdminCompetitions() {
     }
   };
 
-  // ── Edit ────────────────────────────────────────────────────────────────────
+  // Edit
   const openEdit = (comp) => {
     setEditTarget(comp);
     setFormData({
@@ -125,7 +125,7 @@ export default function AdminCompetitions() {
     }
   };
 
-  // ── Delete ──────────────────────────────────────────────────────────────────
+  // Delete
   const handleDelete = async () => {
     if (!deleteDialog) return;
     setSaving(true);
@@ -141,7 +141,7 @@ export default function AdminCompetitions() {
     }
   };
 
-  // ── Status change ───────────────────────────────────────────────────────────
+  // Status change
   const openStatus = (comp) => {
     setStatusDialog(comp);
     setNewStatus(comp.status);
@@ -166,7 +166,7 @@ export default function AdminCompetitions() {
     }
   };
 
-  // ── Registrations ───────────────────────────────────────────────────────────
+  // Registrations
   const openRegistrations = async (comp) => {
     setRegsDialog(comp);
     setRegsLoading(true);
@@ -191,7 +191,7 @@ export default function AdminCompetitions() {
     }
   };
 
-  // ── Certificate Management ─────────────────────────────────────────────────
+  // Certificate Management 
   const openCertificates = async (comp) => {
     setCertDialog(comp);
     setCertLoading(true);
@@ -257,7 +257,7 @@ export default function AdminCompetitions() {
     }
   };
 
-  // ── Form helper ─────────────────────────────────────────────────────────────
+  // Form helper 
   const ff = (key) => ({
     value: formData[key],
     onChange: (e) => setFormData(p => ({ ...p, [key]: e.target.value })),
@@ -411,7 +411,7 @@ export default function AdminCompetitions() {
         </Table>
       </TableContainer>
 
-      {/* ── Create Dialog ─────────────────────────────────────────────────────── */}
+      {/* Create Dialog */}
       <Dialog open={createDialog} onClose={() => setCreateDialog(false)} maxWidth="md" fullWidth>
         <DialogTitle fontWeight={700}>Create New Competition</DialogTitle>
         <Divider />
@@ -426,7 +426,7 @@ export default function AdminCompetitions() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Edit Dialog ───────────────────────────────────────────────────────── */}
+      {/* Edit Dialog */}
       <Dialog open={editDialog} onClose={() => { setEditDialog(false); setEditTarget(null); }} maxWidth="md" fullWidth>
         <DialogTitle fontWeight={700}>Edit Competition</DialogTitle>
         <Divider />
@@ -441,7 +441,7 @@ export default function AdminCompetitions() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Delete Confirmation ───────────────────────────────────────────────── */}
+      {/* Delete Confirmation */}
       <Dialog open={!!deleteDialog} onClose={() => setDeleteDialog(null)} maxWidth="xs" fullWidth>
         <DialogTitle fontWeight={700}>Delete Competition?</DialogTitle>
         <DialogContent>
@@ -457,7 +457,7 @@ export default function AdminCompetitions() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Status Dialog ─────────────────────────────────────────────────────── */}
+      {/* Status Dialog */}
       <Dialog open={!!statusDialog} onClose={() => setStatusDialog(null)} maxWidth="xs" fullWidth>
         <DialogTitle fontWeight={700}>Update Competition Status</DialogTitle>
         <Divider />
@@ -502,7 +502,7 @@ export default function AdminCompetitions() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Registrations Dialog ──────────────────────────────────────────────── */}
+      {/* Registrations Dialog */}
       <Dialog open={!!regsDialog} onClose={() => { setRegsDialog(null); setRegistrations([]); }} maxWidth="md" fullWidth>
         <DialogTitle fontWeight={700}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -606,7 +606,7 @@ export default function AdminCompetitions() {
         </DialogActions>
       </Dialog>
 
-      {/* ── Certificate Management Dialog ──────────────────────────────────── */}
+      {/* Certificate Management Dialog */}
       <Dialog open={!!certDialog} onClose={() => setCertDialog(null)} maxWidth="lg" fullWidth>
         <DialogTitle fontWeight={700}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

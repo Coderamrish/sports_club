@@ -24,7 +24,7 @@ import OTPVerificationStep from '../../components/auth/OTPVerificationStep';
 import { useFieldValidation } from '../../hooks/useDebounce';
 import authService from '../../services/auth.service';
 
-// ── Yup schema ───────────────────────────────────────────────────────────────
+// Yup schema 
 const schema = yup.object({
   fullName: yup.string().min(2).max(100).required('Full name is required'),
   email: yup.string().email('Invalid email format').required('Email is required'),
@@ -45,7 +45,7 @@ const schema = yup.object({
 
 const STEPS = ['Create Account', 'Verify Email', 'Done'];
 
-// ── Field availability indicator ─────────────────────────────────────────────
+//Field availability indicator
 function AvailabilityIndicator({ isChecking, result }) {
   if (isChecking) return <HourglassEmpty fontSize="small" sx={{ color: 'text.secondary', animation: 'spin 1s linear infinite', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />;
   if (!result) return null;
@@ -54,7 +54,7 @@ function AvailabilityIndicator({ isChecking, result }) {
     : <Cancel fontSize="small" color="error" />;
 }
 
-// ── Password strength meter ───────────────────────────────────────────────────
+//Password strength meter
 function PasswordStrength({ password }) {
   if (!password) return null;
   const checks = [
@@ -137,7 +137,7 @@ export default function RegisterPage() {
     600
   );
 
-  // ── Debounced mobile availability check (600ms) ────────────────────
+  // Debounced mobile availability check (600ms)
   const { isChecking: mobileChecking, result: mobileResult } = useFieldValidation(
     mobileVal,
     async (val) => {
@@ -183,7 +183,7 @@ export default function RegisterPage() {
             {STEPS.map(label => <Step key={label}><StepLabel>{label}</StepLabel></Step>)}
           </Stepper>
 
-          {/* ── STEP 1: Form ─────────────────────────────────────────── */}
+          {/*  STEP 1: Form  */}
           {registrationStep === 'form' && (
             <>
               {/* Role picker */}
@@ -336,7 +336,7 @@ export default function RegisterPage() {
             </>
           )}
 
-          {/* ── STEP 2: OTP ──────────────────────────────────────────── */}
+          {/* STEP 2: OTP*/}
           {registrationStep === 'otp' && (
             <OTPVerificationStep
               email={pendingEmail}
@@ -346,7 +346,7 @@ export default function RegisterPage() {
             />
           )}
 
-          {/* ── STEP 3: Success ───────────────────────────────────────── */}
+          {/* STEP 3: Success  */}
           {registrationStep === 'complete' && (
             <Box textAlign="center" py={4}>
               <Typography variant="h3" mb={1}>🎉</Typography>

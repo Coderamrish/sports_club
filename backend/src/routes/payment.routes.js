@@ -16,7 +16,7 @@ router.post(
   paymentController.handleWebhook
 );
 
-// ── Authenticated user routes ─────────────────────────────────────────────────
+// Authenticated user routes 
 router.use(protect);
 
 // Create Razorpay order (athlete or coach)
@@ -28,7 +28,7 @@ router.post('/verify',       restrictTo('athlete', 'coach'), paymentController.v
 // My payment history
 router.get('/my-payments',   restrictTo('athlete', 'coach'), paymentController.getMyPayments);
 
-// Download PDF receipt for a paid payment
+// Download  payment
 router.get('/receipt/:paymentId', restrictTo('athlete', 'coach'), paymentController.downloadReceipt);
 
 module.exports = router;

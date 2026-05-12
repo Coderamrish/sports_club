@@ -6,12 +6,12 @@ const coachProfileController = require('../controllers/coach/coachProfile.contro
 
 router.use(protect, requireEmailVerified, restrictTo('coach'));
 
-// ── Profile ──────────────────────────────────────────────────────────────────
+// Profile
 router.get('/profile',  coachProfileController.getProfile);
 router.patch('/profile', coachProfileController.updateProfile);
 router.patch('/profile/step/:step', coachProfileController.updateProfileStep);
 
-// ── Document uploads ─────────────────────────────────────────────────────────
+// Document uploads
 router.post(
   '/profile/documents/:docType',
   coachDocUpload.single('file'),
@@ -24,7 +24,7 @@ router.delete(
   coachProfileController.deleteDocument
 );
 
-// ── Competitions ─────────────────────────────────────────────────────────────
+//  Competitions
 const compRegController = require('../controllers/competitionRegistration.controller');
 router.get('/competitions', compRegController.getMyRegistrations);
 router.post('/competitions/register', compRegController.registerForCompetition);
